@@ -1,0 +1,6 @@
+{
+  "type": "AzureSqlDatabase",
+  "typeProperties": {
+    "connectionString": "Server=tcp:messyops-server.database.windows.net,1433;Initial Catalog=MessyOpsOLTP;User ID=messy_admin;Password=1606mesy@DMIN;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+  }
+}
