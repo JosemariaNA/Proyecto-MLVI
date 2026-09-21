@@ -1,0 +1,15 @@
+{
+  "name": "ls_oltp_messyops",
+  "properties": {
+    "description": "Origen transaccional MessyOpsOLTP. Autenticacion por Managed Identity del ADF: sin contrasenas en el codigo. Requiere haber creado el usuario contenido en la base y otorgarle db_datareader mas permiso sobre el esquema cdc.",
+    "type": "AzureSqlDatabase",
+    "typeProperties": {
+      "server": "messyops-server.database.windows.net",
+      "database": "MessyOpsOLTP",
+      "encrypt": "mandatory",
+      "trustServerCertificate": false,
+      "authenticationType": "SystemAssignedManagedIdentity"
+    },
+    "annotations": ["bronze", "origen"]
+  }
+}

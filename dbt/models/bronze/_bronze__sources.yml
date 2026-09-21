@@ -1,0 +1,123 @@
+version: 2
+
+sources:
+  - name: bronze
+    description: >
+      Zona cruda. Archivos Parquet cargados por ADF en el contenedor bronze.
+      Inmutable: no se corrige nada aqui, solo se lee.
+      El contrato con ADF son las cuatro columnas __$ del CDC de SQL Server
+      mas ingested_at, que agrega el pipeline al escribir la particion.
+    database: MessyOpsDW
+    schema: bronze
+    loader: azure_data_factory_cdc
+
+    # Si Bronze deja de recibir eventos, el microlote debe fallar ruidosamente
+    # en vez de producir un Silver vacio y silencioso.
+    freshness:
+      warn_after:  {count: 30, period: minute}
+      error_after: {count: 120, period: minute}
+    loaded_at_field: ingested_at
+
+    tables:
+      - name: customers
+        description: Cambios CDC de dbo.customers del OLTP real.
+        columns:
+          - name: customer_id
+            description: Clave natural nvarchar del cliente en el OLTP.
+            tests: [not_null]
+          - name: __$operation
+            description: 1=delete, 2=insert, 3=update(imagen previa), 4=update(imagen nueva).
+            tests:
+              - accepted_values:
+                  values: [1, 2, 3, 4]
+                  quote: false
+
+      - name: products
+        description: Cambios CDC de dbo.products.
+        columns:
+          - name: product_id
+            tests: [not_null]
+
+      - name: suppliers
+        description: Cambios CDC de dbo.suppliers.
+        columns:
+          - name: supplier_id
+            tests: [not_null]
+
+      - name: payments
+        description: Cambios CDC de dbo.payments.
+        columns:
+          - name: payment_id
+            tests: [not_null]
+
+      - name: sales_orders
+        description: Cambios CDC de dbo.sales_orders.
+        columns:
+          - name: sales_order_id
+            tests: [not_null]
+
+      - name: sales_order_lines
+        description: Cambios CDC de dbo.sales_order_lines.
+        columns:
+          - name: sales_order_line_id
+            tests: [not_null]
+
+      - name: invoices
+        description: Cambios CDC de dbo.invoices.
+        columns:
+          - name: invoice_id
+            tests: [not_null]
+
+      - name: shipments
+        description: Cambios CDC de dbo.shipments.
+        columns:
+          - name: shipment_id
+            tests: [not_null]
+
+      - name: warehouses
+        description: Cambios CDC de dbo.warehouses.
+        columns:
+          - name: warehouse_id
+            tests: [not_null]
+
+      - name: returns
+        description: Cambios CDC de dbo.returns.
+        columns:
+          - name: return_id
+            tests: [not_null]
+
+      - name: purchase_orders
+        description: Cambios CDC de dbo.purchase_orders.
+        columns:
+          - name: purchase_order_id
+            tests: [not_null]
+
+      - name: purchase_order_lines
+        description: Cambios CDC de dbo.purchase_order_lines.
+        columns:
+          - name: purchase_order_line_id
+            tests: [not_null]
+
+      - name: supplier_invoices
+        description: Cambios CDC de dbo.supplier_invoices.
+        columns:
+          - name: supplier_invoice_id
+            tests: [not_null]
+
+      - name: supplier_payments
+        description: Cambios CDC de dbo.supplier_payments.
+        columns:
+          - name: supplier_payment_id
+            tests: [not_null]
+
+      - name: inventory_snapshots
+        description: Cambios CDC de dbo.inventory_snapshots.
+        columns:
+          - name: inventory_snapshot_id
+            tests: [not_null]
+
+      - name: support_tickets
+        description: Cambios CDC de dbo.support_tickets.
+        columns:
+          - name: support_ticket_id
+            tests: [not_null]

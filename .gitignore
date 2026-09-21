@@ -1,0 +1,12 @@
+# Entornos y secretos locales
+.venv/
+*.env
+
+# Artefactos generados por dbt
+dbt/target/
+dbt/logs/
+dbt/dbt_packages/
+dbt/profiles.yml
+
+# Archivos locales de herramientas
+.vscode/

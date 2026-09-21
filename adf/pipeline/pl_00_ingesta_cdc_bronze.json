@@ -1,0 +1,129 @@
+{
+  "name": "pl_00_ingesta_cdc_bronze",
+  "properties": {
+    "description": "Microlote de ingesta CDC -> Bronze. Metadata-driven: recorre meta.cdc_control y copia, por entidad, solo los cambios entre el ultimo LSN procesado y el LSN maximo actual del log. El checkpoint se cierra con sp_cerrar_lote_cdc DESPUES de que la copia haya terminado bien, de modo que un fallo repite el lote en vez de saltarselo.",
+    "folder": {"name": "medallion"},
+    "annotations": ["bronze", "cdc"],
+    "parameters": {
+      "ventana_inicio": {"type": "string", "defaultValue": "@utcnow()"}
+    },
+    "variables": {
+      "particion": {"type": "String"}
+    },
+    "activities": [
+      {
+        "name": "SetParticion",
+        "description": "Carpeta date=YYYY-MM-DD del microlote.",
+        "type": "SetVariable",
+        "typeProperties": {
+          "variableName": "particion",
+          "value": {"value": "@formatDateTime(pipeline().parameters.ventana_inicio, 'yyyy-MM-dd')", "type": "Expression"}
+        }
+      },
+      {
+        "name": "LeerEntidadesActivas",
+        "description": "Solo entidades con activo = 1. Mientras el CDC este apagado esta consulta devuelve cero filas y el pipeline termina sin hacer nada, que es el comportamiento deseado.",
+        "type": "Lookup",
+        "dependsOn": [{"activity": "SetParticion", "dependencyConditions": ["Succeeded"]}],
+        "policy": {"timeout": "0.00:10:00", "retry": 2, "retryIntervalInSeconds": 30},
+        "typeProperties": {
+          "source": {
+            "type": "AzureSqlSource",
+            "sqlReaderQuery": "SELECT entidad, capture_instance, ISNULL(last_lsn,'') AS last_lsn FROM meta.cdc_control WHERE activo = 1"
+          },
+          "dataset": {"referenceName": "ds_oltp_cdc_query", "type": "DatasetReference"},
+          "firstRowOnly": false
+        },
+          "linkedServiceName": {"referenceName": "ls_oltp_messyops", "type": "LinkedServiceReference"}
+      },
+      {
+        "name": "PorEntidad",
+        "type": "ForEach",
+        "dependsOn": [{"activity": "LeerEntidadesActivas", "dependencyConditions": ["Succeeded"]}],
+        "typeProperties": {
+          "items": {"value": "@activity('LeerEntidadesActivas').output.value", "type": "Expression"},
+          "isSequential": false,
+          "batchCount": 4,
+          "activities": [
+            {
+              "name": "ResolverRangoLSN",
+              "description": "Calcula el rango [desde, hasta]. Si no hay checkpoint se arranca desde el LSN minimo disponible en el CDC. Si el maximo es nulo (sin actividad) se devuelve rango vacio y se omite la copia.",
+              "type": "Lookup",
+              "policy": {"timeout": "0.00:10:00", "retry": 2, "retryIntervalInSeconds": 30},
+              "typeProperties": {
+                "source": {
+                  "type": "AzureSqlSource",
+                  "sqlReaderQuery": {
+                    "value": "DECLARE @ci SYSNAME = '@{item().capture_instance}';\nDECLARE @desde BINARY(10) = CASE WHEN '@{item().last_lsn}' = '' THEN sys.fn_cdc_get_min_lsn(@ci) ELSE sys.fn_cdc_increment_lsn(CONVERT(BINARY(10), '@{item().last_lsn}', 1)) END;\nDECLARE @hasta BINARY(10) = sys.fn_cdc_get_max_lsn();\nSELECT CONVERT(VARCHAR(34), @desde, 1) AS lsn_desde,\n       CONVERT(VARCHAR(34), @hasta, 1) AS lsn_hasta,\n       CASE WHEN @desde IS NULL OR @hasta IS NULL OR @desde > @hasta THEN 0 ELSE 1 END AS hay_cambios;",
+                    "type": "Expression"
+                  }
+                },
+                "dataset": {"referenceName": "ds_oltp_cdc_query", "type": "DatasetReference"},
+                "firstRowOnly": true
+              }
+            },
+            {
+              "name": "SiHayCambios",
+              "type": "IfCondition",
+              "dependsOn": [{"activity": "ResolverRangoLSN", "dependencyConditions": ["Succeeded"]}],
+              "typeProperties": {
+                "expression": {"value": "@equals(activity('ResolverRangoLSN').output.firstRow.hay_cambios, 1)", "type": "Expression"},
+                "ifTrueActivities": [
+                  {
+                    "name": "CopiarCambiosABronze",
+                    "description": "fn_cdc_get_all_changes con 'all update old' para conservar la imagen previa: Bronze guarda el evento completo y Silver decide que descartar. ingested_at lo agrega el pipeline, no el OLTP.",
+                    "type": "Copy",
+                    "policy": {"timeout": "0.02:00:00", "retry": 2, "retryIntervalInSeconds": 60},
+                    "typeProperties": {
+                      "source": {
+                        "type": "AzureSqlSource",
+                        "sqlReaderQuery": {
+                          "value": "DECLARE @desde BINARY(10) = CONVERT(BINARY(10), '@{activity('ResolverRangoLSN').output.firstRow.lsn_desde}', 1);\nDECLARE @hasta BINARY(10) = CONVERT(BINARY(10), '@{activity('ResolverRangoLSN').output.firstRow.lsn_hasta}', 1);\nSELECT *, SYSUTCDATETIME() AS ingested_at\nFROM cdc.fn_cdc_get_all_changes_@{item().capture_instance}(@desde, @hasta, N'all update old');",
+                          "type": "Expression"
+                        },
+                        "queryTimeout": "02:00:00",
+                        "partitionOption": "None"
+                      },
+                      "sink": {
+                        "type": "ParquetSink",
+                        "storeSettings": {"type": "AzureBlobFSWriteSettings"},
+                        "formatSettings": {"type": "ParquetWriteSettings"}
+                      },
+                      "enableStaging": false,
+                      "translator": {"type": "TabularTranslator", "typeConversion": true}
+                    },
+                    "inputs": [{"referenceName": "ds_oltp_cdc_query", "type": "DatasetReference"}],
+                    "outputs": [{
+                      "referenceName": "ds_bronze_parquet",
+                      "type": "DatasetReference",
+                      "parameters": {
+                        "entidad": {"value": "@item().entidad", "type": "Expression"},
+                        "particion": {"value": "@variables('particion')", "type": "Expression"}
+                      }
+                    }]
+                  },
+                  {
+                    "name": "CerrarCheckpoint",
+                    "description": "Solo se ejecuta si la copia tuvo exito. Este orden es lo que hace el pipeline reintentable sin perder eventos.",
+                    "type": "SqlServerStoredProcedure",
+                    "dependsOn": [{"activity": "CopiarCambiosABronze", "dependencyConditions": ["Succeeded"]}],
+                    "policy": {"timeout": "0.00:10:00", "retry": 2, "retryIntervalInSeconds": 30},
+                    "linkedServiceName": {"referenceName": "ls_synapse_dw", "type": "LinkedServiceReference"},
+                    "typeProperties": {
+                      "storedProcedureName": "[meta].[sp_cerrar_lote_cdc]",
+                      "storedProcedureParameters": {
+                        "entidad":   {"value": {"value": "@item().entidad", "type": "Expression"}, "type": "String"},
+                        "nuevo_lsn": {"value": {"value": "@activity('ResolverRangoLSN').output.firstRow.lsn_hasta", "type": "Expression"}, "type": "String"},
+                        "filas":     {"value": {"value": "@activity('CopiarCambiosABronze').output.rowsCopied", "type": "Expression"}, "type": "Int64"}
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

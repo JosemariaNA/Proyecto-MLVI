@@ -1,0 +1,187 @@
+version: 2
+
+models:
+
+  # =====================================================================
+  - name: slv_clientes
+    description: >
+      Cliente limpio y desduplicado, una fila por clave natural.
+      Propietario: Equipo de Datos (datos@messyops). SLA de frescura: 15 min.
+      Regla de calidad: el registro nunca se descarta por email invalido;
+      se marca con email_valido = 0 y el test lo reporta como advertencia.
+    config:
+      contract: {enforced: false}
+    columns:
+      - name: cliente_id
+        description: Clave natural nvarchar del cliente (customer_id del OLTP).
+        tests:
+          - not_null
+          - unique
+      - name: email
+        description: Email normalizado a minusculas, NULL si venia vacio.
+        tests:
+          - dbt_utils.not_accepted_values:
+              values: ['n/a', 'na', 'none', 'null']
+      - name: email_valido
+        tests:
+          - accepted_values: {values: [0, 1], quote: false}
+          # Severidad warn: un email mal capturado no debe detener el microlote.
+          - not_null: {severity: warn}
+      - name: pais
+        description: Pais en mayusculas.
+      - name: es_borrado
+        description: 1 si el ultimo evento CDC fue un DELETE.
+        tests:
+          - not_null
+          - accepted_values: {values: [0, 1], quote: false}
+      - name: ingested_at
+        tests: [not_null]
+
+  # =====================================================================
+  - name: slv_categorias
+    description: >
+      Catalogo de categorias con el padre resuelto a un nivel.
+      Propietario: Equipo de Datos. SLA: 60 min (cambia rara vez).
+    columns:
+      - name: categoria_id
+        tests: [not_null, unique]
+      - name: categoria_nombre
+        tests:
+          - not_null: {severity: warn}
+      - name: categoria_padre_id
+        description: Auto-referencia. NULL en las categorias raiz.
+        tests:
+          - relationships:
+              to: ref('slv_categorias')
+              field: categoria_id
+              severity: warn
+
+  # =====================================================================
+  - name: slv_productos
+    description: >
+      Producto conformado con categoria aplanada y margen precalculado.
+      Propietario: Equipo de Datos. SLA: 15 min.
+    columns:
+      - name: producto_id
+        tests: [not_null, unique]
+      - name: sku
+        description: SKU en mayusculas. Unico salvo productos dados de baja.
+        tests:
+          - not_null: {severity: warn}
+      - name: categoria_id
+        tests:
+          - relationships:
+              to: ref('slv_categorias')
+              field: categoria_id
+              severity: warn
+      - name: precio_unitario
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              inclusive: true
+      - name: costo_unitario
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              inclusive: true
+      - name: margen_unitario
+        description: (precio - costo) / precio. NULL si el precio es cero.
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: -5
+              max_value: 1
+              severity: warn
+
+  # =====================================================================
+  - name: slv_canales
+    description: "Canal de venta conformado. Propietario: Equipo de Datos. SLA: 60 min."
+    columns:
+      - name: canal_id
+        tests: [not_null, unique]
+      - name: canal_nombre
+        tests:
+          - not_null: {severity: warn}
+
+  # =====================================================================
+  - name: slv_sucursales
+    description: "Sucursal con geografia normalizada. Propietario: Equipo de Datos. SLA: 60 min."
+    columns:
+      - name: sucursal_id
+        tests: [not_null, unique]
+      - name: sucursal_nombre
+        tests:
+          - not_null: {severity: warn}
+
+  # =====================================================================
+  - name: slv_ventas
+    description: >
+      Cabecera de venta con el estado conformado. La bandera
+      es_venta_efectiva es la definicion unica de "venta realizada"
+      para toda la organizacion. Propietario: Equipo de Datos. SLA: 15 min.
+    columns:
+      - name: venta_id
+        tests: [not_null, unique]
+      - name: cliente_id
+        tests:
+          - relationships:
+              to: ref('slv_clientes')
+              field: cliente_id
+              severity: warn   # el maestro puede llegar en el microlote siguiente
+      - name: canal_id
+        tests:
+          - relationships: {to: ref('slv_canales'), field: canal_id, severity: warn}
+      - name: sucursal_id
+        tests:
+          - relationships: {to: ref('slv_sucursales'), field: sucursal_id, severity: warn}
+      - name: fecha_venta
+        tests: [not_null]
+      - name: fecha_key
+        tests: [not_null]
+      - name: estado
+        tests:
+          - accepted_values:
+              values: ['COMPLETED','CANCELLED','PENDING FULFILLMENT']
+              severity: warn
+      - name: es_venta_efectiva
+        tests:
+          - not_null
+          - accepted_values: {values: [0, 1], quote: false}
+
+  # =====================================================================
+  - name: slv_venta_detalle
+    description: >
+      Detalle de venta. Grano del negocio y grano de FactVentas.
+      El importe se recalcula y se compara contra el del OLTP; el
+      descuadre se marca y se vigila. Propietario: Equipo de Datos. SLA: 15 min.
+    tests:
+      # Grano explicito: la combinacion pedido + producto no debe repetirse
+      # mas de lo que el negocio permite.
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [venta_detalle_id]
+    columns:
+      - name: venta_detalle_id
+        tests: [not_null, unique]
+      - name: venta_id
+        tests:
+          - not_null
+          - relationships: {to: ref('slv_ventas'), field: venta_id, severity: warn}
+      - name: producto_id
+        tests:
+          - not_null
+          - relationships: {to: ref('slv_productos'), field: producto_id, severity: warn}
+      - name: cantidad
+        tests:
+          - not_null
+          - dbt_utils.accepted_range: {min_value: 0, inclusive: false}
+      - name: precio_unitario
+        tests:
+          - dbt_utils.accepted_range: {min_value: 0, inclusive: true}
+      - name: descuento
+        tests:
+          - dbt_utils.accepted_range: {min_value: 0, inclusive: true}
+      - name: importe
+        tests: [not_null]
+      - name: tiene_descuadre
+        description: 1 si el importe del OLTP difiere del recalculado en mas de 0.01.
+        tests:
+          - accepted_values: {values: [0, 1], quote: false}

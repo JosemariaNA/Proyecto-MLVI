@@ -1,0 +1,120 @@
+{
+  "name": "pl_10_ejecutar_dbt",
+  "properties": {
+    "description": "Ejecutor generico de dbt. Levanta un Azure Container Instance efimero con la imagen del proyecto, corre el comando recibido y lo destruye. Se eligio ACI en vez de Azure Batch o Databricks porque solo se factura el tiempo real de ejecucion (segundos por microlote) y no hay cluster encendido entre lotes. Silver y Gold invocan este mismo pipeline con distinta seleccion, de modo que la mecanica de ejecucion vive en un unico sitio.",
+    "folder": {"name": "medallion"},
+    "annotations": ["dbt"],
+    "parameters": {
+      "subscription_id": {"type": "string"},
+      "resource_group":  {"type": "string", "defaultValue": "AzureDW"},
+      "imagen":          {"type": "string", "defaultValue": "messydopsacr.azurecr.io/azuredw-dbt:latest"},
+      "comando":         {"type": "string", "defaultValue": "build"},
+      "seleccion":       {"type": "string", "defaultValue": "tag:silver"},
+      "nombre_grupo":    {"type": "string", "defaultValue": "aci-dbt-run"}
+    },
+    "variables": {
+      "estado":  {"type": "String"},
+      "intentos": {"type": "Integer"}
+    },
+    "activities": [
+      {
+        "name": "CrearContenedorDbt",
+        "description": "PUT a ARM con la identidad administrada del ADF. La identidad del contenedor se autentica contra Azure SQL fuera de la definicion del pipeline.",
+        "type": "WebActivity",
+        "policy": {"timeout": "0.00:20:00", "retry": 1, "retryIntervalInSeconds": 60},
+        "typeProperties": {
+          "method": "PUT",
+          "url": {
+            "value": "@concat('https://management.azure.com/subscriptions/', pipeline().parameters.subscription_id, '/resourceGroups/', pipeline().parameters.resource_group, '/providers/Microsoft.ContainerInstance/containerGroups/', pipeline().parameters.nombre_grupo, '-', pipeline().RunId, '?api-version=2023-05-01')",
+            "type": "Expression"
+          },
+          "authentication": {"type": "MSI", "resource": "https://management.azure.com/"},
+          "body": {
+            "value": "@json(concat('{\"location\":\"eastus\",\"identity\":{\"type\":\"SystemAssigned\"},\"properties\":{\"osType\":\"Linux\",\"restartPolicy\":\"Never\",\"containers\":[{\"name\":\"dbt\",\"properties\":{\"image\":\"', pipeline().parameters.imagen, '\",\"command\":[\"dbt\",\"', pipeline().parameters.comando, '\",\"--select\",\"', pipeline().parameters.seleccion, '\",\"--target\",\"prod\"],\"resources\":{\"requests\":{\"cpu\":1,\"memoryInGB\":2}}}}]}}'))",
+            "type": "Expression"
+          }
+        }
+      },
+      {
+        "name": "EsperarFinDbt",
+        "description": "Sondeo cada 30 s hasta que el contenedor termina. Se limita a 40 intentos (20 min) para que un dbt colgado no mantenga el microlote abierto indefinidamente.",
+        "type": "Until",
+        "dependsOn": [{"activity": "CrearContenedorDbt", "dependencyConditions": ["Succeeded"]}],
+        "typeProperties": {
+          "timeout": "0.00:30:00",
+          "expression": {
+            "value": "@or(equals(variables('estado'), 'Succeeded'), equals(variables('estado'), 'Failed'))",
+            "type": "Expression"
+          },
+          "activities": [
+            {
+              "name": "Esperar30s",
+              "type": "Wait",
+              "typeProperties": {"waitTimeInSeconds": 30}
+            },
+            {
+              "name": "ConsultarEstado",
+              "type": "WebActivity",
+              "dependsOn": [{"activity": "Esperar30s", "dependencyConditions": ["Succeeded"]}],
+              "policy": {"timeout": "0.00:05:00", "retry": 3, "retryIntervalInSeconds": 15},
+              "typeProperties": {
+                "method": "GET",
+                "url": {
+                  "value": "@concat('https://management.azure.com/subscriptions/', pipeline().parameters.subscription_id, '/resourceGroups/', pipeline().parameters.resource_group, '/providers/Microsoft.ContainerInstance/containerGroups/', pipeline().parameters.nombre_grupo, '-', pipeline().RunId, '?api-version=2023-05-01')",
+                  "type": "Expression"
+                },
+                "authentication": {"type": "MSI", "resource": "https://management.azure.com/"}
+              }
+            },
+            {
+              "name": "GuardarEstado",
+              "type": "SetVariable",
+              "dependsOn": [{"activity": "ConsultarEstado", "dependencyConditions": ["Succeeded"]}],
+              "typeProperties": {
+                "variableName": "estado",
+                "value": {
+                  "value": "@if(equals(coalesce(activity('ConsultarEstado').output.properties.instanceView.state, 'Pending'), 'Terminated'), if(equals(activity('ConsultarEstado').output.properties.containers[0].properties.instanceView.currentState.exitCode, 0), 'Succeeded', 'Failed'), 'Running')",
+                  "type": "Expression"
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "EliminarContenedor",
+        "description": "Limpieza incondicional: se ejecuta tanto si dbt fallo como si tuvo exito, para que no queden grupos de contenedores facturando.",
+        "type": "WebActivity",
+        "dependsOn": [{"activity": "EsperarFinDbt", "dependencyConditions": ["Completed"]}],
+        "policy": {"timeout": "0.00:10:00", "retry": 2, "retryIntervalInSeconds": 30},
+        "typeProperties": {
+          "method": "DELETE",
+          "url": {
+            "value": "@concat('https://management.azure.com/subscriptions/', pipeline().parameters.subscription_id, '/resourceGroups/', pipeline().parameters.resource_group, '/providers/Microsoft.ContainerInstance/containerGroups/', pipeline().parameters.nombre_grupo, '-', pipeline().RunId, '?api-version=2023-05-01')",
+            "type": "Expression"
+          },
+          "authentication": {"type": "MSI", "resource": "https://management.azure.com/"}
+        }
+      },
+      {
+        "name": "SiDbtFallo",
+        "description": "Solo convierte el fallo real de dbt en fallo del pipeline.",
+        "type": "IfCondition",
+        "dependsOn": [{"activity": "EliminarContenedor", "dependencyConditions": ["Completed"]}],
+        "typeProperties": {
+          "expression": {"value": "@equals(variables('estado'), 'Failed')", "type": "Expression"},
+          "ifTrueActivities": [
+            {
+              "name": "FallarSiDbtFallo",
+              "type": "Fail",
+              "typeProperties": {
+                "message": {"value": "@concat('dbt ', pipeline().parameters.comando, ' --select ', pipeline().parameters.seleccion, ' termino con estado: ', variables('estado'))", "type": "Expression"},
+                "errorCode": "DBT_RUN_FAILED"
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

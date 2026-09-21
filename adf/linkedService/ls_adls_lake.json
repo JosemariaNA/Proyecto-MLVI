@@ -1,0 +1,12 @@
+{
+  "name": "ls_adls_lake",
+  "properties": {
+    "description": "Storage Account de las capas medallion: bronze, silver y gold.",
+    "type": "AzureBlobFS",
+    "typeProperties": {
+      "url": "https://messydopsdl2026.dfs.core.windows.net",
+      "authenticationType": "ManagedIdentity"
+    },
+    "annotations": ["bronze", "silver", "gold"]
+  }
+}

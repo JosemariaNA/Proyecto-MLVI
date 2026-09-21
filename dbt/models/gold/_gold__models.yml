@@ -1,0 +1,135 @@
+version: 2
+
+models:
+
+  # =====================================================================
+  - name: dim_fecha
+    description: >
+      Dimension calendario conformada, generada por codigo entre
+      {{ var('dim_fecha_inicio') }} y {{ var('dim_fecha_fin') }}.
+      Incluye el miembro desconocido (-1). Propietario: Equipo de Datos.
+    columns:
+      - name: fecha_key
+        description: Clave entera YYYYMMDD. -1 para fecha desconocida.
+        tests: [not_null, unique]
+      - name: fecha
+        tests: [not_null]
+      - name: anio
+        tests:
+          - dbt_utils.accepted_range: {min_value: 1900, max_value: 2100}
+      - name: mes
+        tests:
+          - accepted_values:
+              values: [0,1,2,3,4,5,6,7,8,9,10,11,12]
+              quote: false
+
+  # =====================================================================
+  - name: dim_cliente
+    description: >
+      Dimension cliente historizada (SCD tipo 2) sobre snp_clientes.
+      Una fila por version. es_version_vigente = 1 marca la actual.
+      Propietario: Equipo de Datos. SLA: 15 min.
+    # Invariantes SCD2 (una version vigente, sin solapamiento): ver tests/assert_scd2_*.sql
+    columns:
+      - name: cliente_key
+        description: Clave sustituta determinista = hash(cliente_id, valido_desde).
+        tests: [not_null, unique]
+      - name: cliente_id
+        tests: [not_null]
+      - name: valido_desde
+        tests: [not_null]
+      - name: valido_hasta
+        tests: [not_null]
+      - name: es_version_vigente
+        tests:
+          - not_null
+          - accepted_values: {values: [0, 1], quote: false}
+
+  # =====================================================================
+  - name: dim_producto
+    description: >
+      Dimension producto historizada (SCD tipo 2) con la jerarquia de
+      categoria aplanada a dos niveles. Propietario: Equipo de Datos. SLA: 15 min.
+    columns:
+      - name: producto_key
+        tests: [not_null, unique]
+      - name: producto_id
+        tests: [not_null]
+      - name: precio_unitario
+        tests:
+          - dbt_utils.accepted_range: {min_value: 0, inclusive: true}
+      - name: costo_unitario
+        tests:
+          - dbt_utils.accepted_range: {min_value: 0, inclusive: true}
+      - name: es_version_vigente
+        tests:
+          - accepted_values: {values: [0, 1], quote: false}
+
+  # =====================================================================
+  - name: dim_canal
+    description: "Dimension canal (SCD tipo 1). Propietario: Equipo de Datos. SLA: 60 min."
+    columns:
+      - name: canal_key
+        tests: [not_null, unique]
+      - name: canal_id
+        tests: [not_null, unique]
+
+  # =====================================================================
+  - name: dim_sucursal
+    description: "Dimension sucursal (SCD tipo 1). Propietario: Equipo de Datos. SLA: 60 min."
+    columns:
+      - name: sucursal_key
+        tests: [not_null, unique]
+      - name: sucursal_id
+        tests: [not_null, unique]
+
+  # =====================================================================
+  - name: fact_ventas
+    description: >
+      Tabla de hechos de venta. Grano: una linea de detalle de pedido.
+      Solo contiene ventas efectivas segun la regla conformada en Silver.
+      Propietario: Equipo de Datos. SLA: 15 min. Consumidor: Power BI Service.
+    columns:
+      - name: venta_detalle_id
+        description: Clave degenerada. Define el grano de la tabla.
+        tests: [not_null, unique]
+      - name: venta_id
+        description: Clave degenerada del pedido, para drill-through.
+        tests: [not_null]
+
+      # ---- Integridad referencial del esquema estrella -----------------
+      - name: fecha_key
+        tests:
+          - not_null
+          - relationships: {to: ref('dim_fecha'), field: fecha_key}
+      - name: cliente_key
+        tests:
+          - not_null
+          - relationships: {to: ref('dim_cliente'), field: cliente_key}
+      - name: producto_key
+        tests:
+          - not_null
+          - relationships: {to: ref('dim_producto'), field: producto_key}
+      - name: canal_key
+        tests:
+          - not_null
+          - relationships: {to: ref('dim_canal'), field: canal_key}
+      - name: sucursal_key
+        tests:
+          - not_null
+          - relationships: {to: ref('dim_sucursal'), field: sucursal_key}
+
+      # ---- Medidas ------------------------------------------------------
+      - name: cantidad
+        tests:
+          - not_null
+          - dbt_utils.accepted_range: {min_value: 0, inclusive: false}
+      - name: importe
+        tests: [not_null]
+      - name: costo
+        tests:
+          - dbt_utils.accepted_range: {min_value: 0, inclusive: true, severity: warn}
+      - name: margen
+        description: importe - costo. Puede ser negativo en liquidaciones.
+        tests:
+          - not_null

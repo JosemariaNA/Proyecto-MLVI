@@ -1,0 +1,24 @@
+{
+  "name": "ds_bronze_parquet",
+  "properties": {
+    "description": "Eventos CDC en Parquet dentro del contenedor bronze, particionados por entidad y fecha.",
+    "linkedServiceName": {"referenceName": "ls_adls_lake", "type": "LinkedServiceReference"},
+    "type": "Parquet",
+    "parameters": {
+      "entidad": {"type": "string"},
+      "particion": {"type": "string"}
+    },
+    "typeProperties": {
+      "location": {
+        "type": "AzureBlobFSLocation",
+        "fileSystem": "bronze",
+        "folderPath": {
+          "value": "@concat(dataset().entidad, '/date=', dataset().particion)",
+          "type": "Expression"
+        }
+      },
+      "compressionCodec": "snappy"
+    },
+    "schema": []
+  }
+}

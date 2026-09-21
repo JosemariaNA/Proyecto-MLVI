@@ -1,0 +1,14 @@
+{
+  "name": "ls_synapse_dw",
+  "properties": {
+    "description": "Azure Synapse Analytics MessyOpsDW. Destino del modelo dimensional y control de calidad.",
+    "type": "AzureSqlDW",
+    "typeProperties": {
+      "server": "messyops-synapse.sql.azuresynapse.net",
+      "database": "MessyOpsDW",
+      "encrypt": "mandatory",
+      "authenticationType": "SystemAssignedManagedIdentity"
+    },
+    "annotations": ["synapse", "silver", "gold", "meta"]
+  }
+}

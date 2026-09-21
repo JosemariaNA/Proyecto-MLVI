@@ -1,0 +1,53 @@
+name: 'azuredw'
+version: '1.0.0'
+config-version: 2
+
+profile: 'azuredw'
+
+model-paths:   ["models"]
+macro-paths:   ["macros"]
+test-paths:    ["tests"]
+seed-paths:    ["seeds"]
+analysis-paths: ["analyses"]
+target-path:   "target"
+clean-targets: ["target", "dbt_packages"]
+
+# ---------------------------------------------------------------------------
+# Variables de entorno del proyecto. Todo lo que puede cambiar entre
+# suscripciones vive aqui, no incrustado en los modelos.
+# ---------------------------------------------------------------------------
+vars:
+  # Ventana de seguridad que se resta al watermark para no perder eventos
+  # que llegaron tarde a Bronze (CDC + escritura no son atomicos).
+  late_arriving_buffer_minutes: 15
+
+  # Fecha minima de la dimension calendario.
+  dim_fecha_inicio: '2020-01-01'
+  dim_fecha_fin:    '2030-12-31'
+
+  # Valor centinela para claves sustitutas desconocidas.
+  unknown_key: -1
+
+models:
+  azuredw:
+    +persist_docs:
+      relation: true
+      columns: true
+
+    silver:
+      +schema: silver
+      +materialized: incremental
+      +incremental_strategy: merge
+      +post-hook: "{{ actualizar_watermark(this, 'silver') }}"
+
+    gold:
+      +schema: gold
+      +materialized: incremental
+      +incremental_strategy: merge
+      +post-hook: "{{ actualizar_watermark(this, 'gold') }}"
+
+tests:
+  azuredw:
+    +store_failures: true
+    +schema: meta
+    +severity: error

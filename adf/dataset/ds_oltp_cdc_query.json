@@ -1,0 +1,10 @@
+{
+  "name": "ds_oltp_cdc_query",
+  "properties": {
+    "description": "Dataset generico de lectura sobre el OLTP. La consulta CDC se pasa desde el pipeline para las 16 entidades.",
+    "linkedServiceName": {"referenceName": "ls_oltp_messyops", "type": "LinkedServiceReference"},
+    "type": "AzureSqlTable",
+    "schema": [],
+    "typeProperties": {}
+  }
+}

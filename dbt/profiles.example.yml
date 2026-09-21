@@ -1,0 +1,37 @@
+# Copiar a ~/.dbt/profiles.yml.
+# NUNCA versionar la contrasena real: usar variables de entorno
+# (AZURE_TENANT_ID / AZURE_CLIENT_ID / AZURE_CLIENT_SECRET) fuera del repositorio.
+azuredw:
+  target: synapse
+  outputs:
+
+    synapse:
+      type: synapse
+      driver: 'ODBC Driver 18 for SQL Server'
+      server: messyops-synapse.sql.azuresynapse.net
+      port: 1433
+      database: MessyOpsDW
+      schema: silver
+      authentication: ActiveDirectoryServicePrincipal
+      tenant_id: "{{ env_var('AZURE_TENANT_ID') }}"
+      client_id: "{{ env_var('AZURE_CLIENT_ID') }}"
+      client_secret: "{{ env_var('AZURE_CLIENT_SECRET') }}"
+      encrypt: true
+      trust_cert: false
+      threads: 4
+
+    prod:
+      type: synapse
+      driver: 'ODBC Driver 18 for SQL Server'
+      server: messyops-synapse.sql.azuresynapse.net
+      port: 1433
+      database: MessyOpsDW
+      schema: silver
+      authentication: ActiveDirectoryServicePrincipal
+      tenant_id: "{{ env_var('AZURE_TENANT_ID') }}"
+      client_id: "{{ env_var('AZURE_CLIENT_ID') }}"
+      client_secret: "{{ env_var('AZURE_CLIENT_SECRET') }}"
+      encrypt: true
+      trust_cert: false
+      threads: 4
+      retries: 2
