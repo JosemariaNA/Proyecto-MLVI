@@ -4,7 +4,7 @@ Propietario de todas las entidades: **Equipo de Datos**. El catálogo navegable 
 
 | Capa | Entidad | Descripción | SLA de frescura | Consumidor |
 |---|---|---|---|---|
-| Bronze | `bronze.customers` … `bronze.warehouses` | Eventos CDC crudos e inmutables | 5 min (microlote) | dbt Silver |
+| Bronze | `bronze.customers` … `bronze.warehouses` | Cambios CDC netos, crudos e inmutables (recurso CDC nativo de ADF) | 15 min (microlote) | dbt Silver |
 | Silver | `slv_clientes` | Cliente limpio, una fila por clave | 15 min | Snapshot SCD2 |
 | Silver | `slv_categorias` | Categorías con padre resuelto | 60 min | `slv_productos` |
 | Silver | `slv_productos` | Producto con categoría y margen | 15 min | Snapshot SCD2 |
@@ -19,7 +19,7 @@ Propietario de todas las entidades: **Equipo de Datos**. El catálogo navegable 
 | Gold | `dim_sucursal` | Sucursal (SCD1) | 60 min | Power BI |
 | Gold | `fact_ventas` | Ventas efectivas por línea | 15 min | Power BI |
 | Meta | `etl_watermark` | Checkpoint de Silver y Gold | — | dbt |
-| Meta | `cdc_control` | Checkpoint de LSN de Bronze | — | ADF |
+| Meta | `vw_bronze_frescura` | Último microlote y retraso por entidad de Bronze (el checkpoint de LSN lo guarda el recurso CDC de ADF) | — | Operación |
 | Meta | `data_quality_log` | Histórico de fallos de calidad | — | Operación / Power BI |
 | Meta | `reconciliation_log` | Conteos entre capas | — | Operación |
 | Meta | `vw_pipeline_health` | Retraso y fallos por entidad | — | Operación |

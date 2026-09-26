@@ -1,5 +1,5 @@
-﻿{
-    "name":  "Azure subscription 1",
-    "id":  "a31a2ae9-7ff4-46c1-ae2b-566c17ce944c",
-    "tenantId":  "1c4675b6-c951-4832-a865-55ad87d9c4ea"
+{
+  "id": "4ddbce0d-5c26-4d5c-88ec-f8c439b0caf5",
+  "name": "Azure for Students",
+  "tenantId": "29b04522-efb6-422d-8d80-d86a2967b572"
 }

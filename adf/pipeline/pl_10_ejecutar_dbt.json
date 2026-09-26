@@ -30,7 +30,7 @@
           },
           "authentication": {"type": "MSI", "resource": "https://management.azure.com/"},
           "body": {
-            "value": "@json(concat('{\"location\":\"eastus\",\"identity\":{\"type\":\"SystemAssigned\"},\"properties\":{\"osType\":\"Linux\",\"restartPolicy\":\"Never\",\"containers\":[{\"name\":\"dbt\",\"properties\":{\"image\":\"', pipeline().parameters.imagen, '\",\"command\":[\"dbt\",\"', pipeline().parameters.comando, '\",\"--select\",\"', pipeline().parameters.seleccion, '\",\"--target\",\"prod\"],\"resources\":{\"requests\":{\"cpu\":1,\"memoryInGB\":2}}}}]}}'))",
+            "value": "@json(concat('{\"location\":\"westus\",\"identity\":{\"type\":\"SystemAssigned\"},\"properties\":{\"osType\":\"Linux\",\"restartPolicy\":\"Never\",\"containers\":[{\"name\":\"dbt\",\"properties\":{\"image\":\"', pipeline().parameters.imagen, '\",\"command\":[\"dbt\",\"', pipeline().parameters.comando, '\",\"--select\",\"', pipeline().parameters.seleccion, '\",\"--target\",\"prod\"],\"resources\":{\"requests\":{\"cpu\":1,\"memoryInGB\":2}}}}]}}'))",
             "type": "Expression"
           }
         }

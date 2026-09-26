@@ -1,24 +1,31 @@
 {
   "name": "tr_microlote_5min",
   "properties": {
-    "description": "Ventana de volteo de 5 minutos. Se eligio ventana de volteo y no schedule porque garantiza que cada intervalo se procesa exactamente una vez y, tras una caida, ADF reprocesa las ventanas pendientes en orden. maxConcurrency = 1 impide que dos microlotes escriban Silver a la vez. ARRANCA DESHABILITADO: se activa al final, cuando el CDC ya este encendido.",
+    "description": "Ventana de volteo de 15 minutos, alineada con el microlote del recurso CDC que alimenta Bronze (no tiene sentido transformar mas seguido de lo que llegan datos). Se eligio ventana de volteo y no schedule porque garantiza que cada intervalo se procesa exactamente una vez y, tras una caida, ADF reprocesa las ventanas pendientes en orden. maxConcurrency = 1 impide que dos microlotes escriban Silver a la vez. ARRANCA DETENIDO: se activa al final, cuando el recurso CDC ya haya completado su instantanea inicial.",
     "runtimeState": "Stopped",
-    "annotations": ["medallion"],
+    "annotations": [
+      "medallion"
+    ],
     "type": "TumblingWindowTrigger",
     "pipeline": {
-      "pipelineReference": {"referenceName": "pl_99_maestro_medallion", "type": "PipelineReference"},
+      "pipelineReference": {
+        "referenceName": "pl_99_maestro_medallion",
+        "type": "PipelineReference"
+      },
       "parameters": {
-        "subscription_id": "4ddbce0d-5c26-4d5c-88ec-f8c439b0caf5",
-        "ventana_inicio": "@trigger().outputs.windowStartTime"
+        "subscription_id": "4ddbce0d-5c26-4d5c-88ec-f8c439b0caf5"
       }
     },
     "typeProperties": {
       "frequency": "Minute",
-      "interval": 5,
+      "interval": 15,
       "startTime": "2026-09-21T00:00:00Z",
       "delay": "00:01:00",
       "maxConcurrency": 1,
-      "retryPolicy": {"count": 2, "intervalInSeconds": 300},
+      "retryPolicy": {
+        "count": 2,
+        "intervalInSeconds": 300
+      },
       "dependsOn": []
     }
   }

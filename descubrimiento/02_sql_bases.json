@@ -1,0 +1,17 @@
+[
+  {
+    "estado": "Online",
+    "nombre": "MessyOpsDW",
+    "sku": "GP_S_Gen5_2"
+  },
+  {
+    "estado": "Online",
+    "nombre": "master",
+    "sku": "GP_SYSTEM_4"
+  },
+  {
+    "estado": "Paused",
+    "nombre": "MessyOpsOLTP",
+    "sku": "GP_S_Gen5_2"
+  }
+]

@@ -1,11 +1,14 @@
 /* =====================================================================
    AzureDW — Bateria de validacion manual
-    Ejecutar en Azure SQL Query Editor despues de cada despliegue y tras el
+   Ejecutar en Synapse MessyOpsDW despues de cada despliegue y tras el
    primer microlote real. Complementa (no sustituye) los tests de dbt.
+   Por CLI:  scripts/02_desplegar_sql.sh validar
    ===================================================================== */
 
+-- V0 (Bronze) vive en sql/05_validar_bronze.sql.
+
 -- ---------------------------------------------------------------------
--- V1. Existencia de objetos. Debe devolver 4 esquemas y las tablas meta.
+-- V1. Existencia de objetos: 5 esquemas, tablas meta y 16 tablas externas bronze.
 -- ---------------------------------------------------------------------
 SELECT 'esquemas' AS control, name AS objeto FROM sys.schemas
 WHERE name IN ('bronze','silver','gold','meta','stg')
@@ -30,19 +33,19 @@ SELECT * FROM meta.vw_pipeline_health ORDER BY minutos_de_retraso DESC;
 --     por clave y Silver exactamente uno.
 -- ---------------------------------------------------------------------
 SELECT 'clientes' AS entidad,
-    (SELECT COUNT(DISTINCT customer_id) FROM bronze.customers WHERE [__$operation] IN (2,4)) AS claves_bronze,
+    (SELECT COUNT(DISTINCT customer_id) FROM bronze.customers WHERE cdc_operation IN ('I','U')) AS claves_bronze,
        (SELECT COUNT(*) FROM silver.slv_clientes)                                              AS filas_silver
 UNION ALL
 SELECT 'productos',
-    (SELECT COUNT(DISTINCT product_id) FROM bronze.products WHERE [__$operation] IN (2,4)),
+    (SELECT COUNT(DISTINCT product_id) FROM bronze.products WHERE cdc_operation IN ('I','U')),
        (SELECT COUNT(*) FROM silver.slv_productos)
 UNION ALL
 SELECT 'ventas',
-    (SELECT COUNT(DISTINCT sales_order_id) FROM bronze.sales_orders WHERE [__$operation] IN (2,4)),
+    (SELECT COUNT(DISTINCT sales_order_id) FROM bronze.sales_orders WHERE cdc_operation IN ('I','U')),
        (SELECT COUNT(*) FROM silver.slv_ventas)
 UNION ALL
 SELECT 'detalle',
-    (SELECT COUNT(DISTINCT sales_order_line_id) FROM bronze.sales_order_lines WHERE [__$operation] IN (2,4)),
+    (SELECT COUNT(DISTINCT sales_order_line_id) FROM bronze.sales_order_lines WHERE cdc_operation IN ('I','U')),
        (SELECT COUNT(*) FROM silver.slv_venta_detalle);
 
 -- ---------------------------------------------------------------------

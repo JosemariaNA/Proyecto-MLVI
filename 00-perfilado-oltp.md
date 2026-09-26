@@ -4,7 +4,7 @@ Hallazgos medidos directamente sobre `messyops-server/MessyOpsOLTP` desde el edi
 
 ## Inventario
 
-16 tablas de negocio en `dbo`, 15 con CDC habilitado (`data_quality_log` no lo tiene). El CDC está activo a nivel de base (16 instancias de captura en `cdc.change_tables`).
+17 tablas en `dbo`: 16 de negocio, todas con CDC habilitado, más `data_quality_log` (bitácora del generador de datos, sin CDC y fuera del alcance de Bronze). El CDC está activo a nivel de base (16 instancias de captura en `cdc.change_tables`).
 
 | Tabla | Filas | Columnas |
 |---|---|---|

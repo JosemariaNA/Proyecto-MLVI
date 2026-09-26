@@ -5,11 +5,14 @@ Implementación de las capas **Silver** y **Gold** del Data Warehouse de MessyOp
 ## Arquitectura
 
 ```
-MessyOpsOLTP (Azure SQL, CDC nativo)
-        │  cdc.fn_cdc_get_all_changes_*  (rango de LSN)
+MessyOpsOLTP (Azure SQL, CDC nativo en 16 tablas)
+        │  cambios netos por LSN
         ▼
-ADF  pl_00_ingesta_cdc_bronze  ──►  ADLS Gen2 /bronze/<entidad>/date=YYYY-MM-DD/*.parquet
-        │
+ADF · recurso CDC nativo  cdc_oltp_bronze
+        │  microlote 15 min, checkpoint propio, instantánea inicial única
+        ▼
+ADLS Gen2 /bronze/<entidad>/*.parquet   (columnas OLTP + cdc_operation + ingested_at)
+        │  tablas externas bronze.* en Synapse
         ▼
 ADF  pl_10_ejecutar_dbt (ACI efímero) ──►  Azure Synapse Analytics MessyOpsDW
                                               ├─ silver.*   (7 modelos incrementales)
@@ -21,28 +24,28 @@ ADF  pl_10_ejecutar_dbt (ACI efímero) ──►  Azure Synapse Analytics MessyO
                                              Power BI Service
 ```
 
-Todo el flujo se dispara cada 5 minutos con una **ventana de volteo** (`tr_microlote_5min`), con concurrencia 1 para que dos microlotes nunca escriban Silver a la vez.
+Bronze se alimenta de forma continua con el recurso CDC nativo de ADF. Silver y Gold se disparan cada 15 minutos con una **ventana de volteo** (`tr_microlote_5min`), alineada con los microlotes de Bronze y con concurrencia 1 para que dos microlotes nunca escriban Silver a la vez. El detalle de la captura está en [`docs/05-captura-cdc-bronze.md`](docs/05-captura-cdc-bronze.md).
 
 ## Contenido del repositorio
 
 | Carpeta | Qué contiene |
 |---|---|
-| `sql/` | Scripts que dbt no gestiona: esquema `meta`, habilitación y control del CDC, batería de validación. |
+| `sql/` | Scripts que dbt no gestiona: CDC en el OLTP (`02`), tablas externas Bronze (`00`, generado), monitoreo de Bronze (`03`), esquema `meta` y batería de validación. |
 | `dbt/` | Proyecto dbt: 7 modelos Silver, 6 modelos Gold, 2 snapshots SCD2, macros de control incremental y 106 tests. |
-| `adf/` | Linked services, datasets, 3 pipelines y el trigger, en el formato JSON del modo Git de ADF. |
-| `scripts/` | Verificación de entorno (solo lectura), preparación del lake y permisos, y el Dockerfile del ejecutor dbt. |
-| `docs/` | Arquitectura, modelo dimensional, catálogo de datos, runbook de despliegue y costes. |
+| `adf/` | Recurso CDC nativo (`adfcdc/`), linked services, pipelines de dbt y el trigger, en el formato JSON del modo Git de ADF. |
+| `scripts/` | Todo por CLI: verificación (`00`), aprovisionamiento (`01`), despliegue SQL con sqlcmd (`02`), despliegue del recurso CDC (`03`), generador de Bronze y el Dockerfile del ejecutor dbt. |
+| `docs/` | Modelo dimensional, catálogo de datos, runbook de despliegue, costos y captura CDC/Bronze. |
 
 ## Orden de despliegue
 
-El CDC está apagado a propósito y se enciende **al final**. El orden completo está en [`docs/03-runbook-despliegue.md`](docs/03-runbook-despliegue.md); en resumen:
+Todo por consola. El detalle está en [`docs/03-runbook-despliegue.md`](docs/03-runbook-despliegue.md); en resumen:
 
-1. `scripts/00_verificar_entorno.sh` — confirmar recursos (no crea nada).
-2. `sql/01_meta_control.sql` → `sql/03_cdc_control.sql` → `sql/00_bronze_external.sql` en Synapse `MessyOpsDW`.
-3. `dbt deps && dbt build` — crea Silver, snapshots y Gold.
-4. Publicar `adf/` en messyops-adf (trigger queda detenido).
-5. **Al final:** `sql/02_cdc_setup.sql` en el OLTP, `EXEC meta.sp_activar_ingesta_cdc`, y arrancar el trigger.
-6. `sql/04_validaciones.sql` tras el primer microlote real.
+1. `./scripts/00_verificar_entorno.sh`: línea base, solo lectura.
+2. `./scripts/01_aprovisionar.sh`: lago, ADF, Synapse, firewall, administradores Entra y RBAC. Es idempotente.
+3. `./scripts/02_desplegar_sql.sh oltp`, y luego `bronze`: CDC en el OLTP y tablas externas Bronze.
+4. `./scripts/03_desplegar_adf_cdc.sh desplegar`, y luego `iniciar`: captura CDC nativa.
+5. `./scripts/02_desplegar_sql.sh validar`: V0 y frescura de Bronze.
+6. dbt (Silver y Gold) y los pipelines de orquestación, pendientes de adaptar Silver al contrato Bronze.
 
 ## Decisiones clave
 
@@ -50,9 +53,11 @@ El CDC está apagado a propósito y se enciende **al final**. El orden completo 
 - **SCD2 con snapshots de dbt** para cliente y producto; **SCD1** para canal y sucursal.
 - **Claves sustitutas por hash determinista**, no `IDENTITY`: reprocesar produce las mismas claves y el MERGE sigue siendo idempotente.
 - **Miembro desconocido (-1)** en todas las dimensiones: un maestro que llega tarde degrada el reporte en vez de borrar la venta.
-- **Azure Synapse Analytics**, con Bronze expuesto sobre ADLS y Silver/Gold materializados por dbt.
+- **Captura con el recurso CDC nativo de ADF**, no con pipelines de copia: el recurso lee el CDC de Azure SQL y guarda su propio checkpoint. Hace una única instantánea inicial y después solo lee cambios netos.
+- **Esquema de Bronze generado desde el DDL del OLTP** (`scripts/generar_bronze.py`): el recurso CDC y las tablas externas no pueden desalinearse.
+- **Azure Synapse Analytics** (`messyops-synapse`): Bronze se expone sobre ADLS con tablas externas nativas en el pool serverless Built-in, sin costo por hora. Silver y Gold se materializan con dbt; el motor se define al adaptar Silver (pool dedicado o serverless).
 - **dbt en Azure Container Instance efímero**: solo se factura el tiempo de ejecución de cada microlote.
 
 ## Credenciales
 
-Ningún archivo del repositorio contiene contraseñas. dbt las lee de variables de entorno y ADF usa identidades administradas. `profiles.example.yml` muestra la plantilla.
+Ningún archivo del repositorio contiene contraseñas. ADF y Synapse usan identidades administradas; los scripts usan la sesión de `az login`. La master key de Synapse se pasa por la variable `MASTER_KEY_PWD` y dbt lee sus credenciales de variables de entorno (`profiles.example.yml`).

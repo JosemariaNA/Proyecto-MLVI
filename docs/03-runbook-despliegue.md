@@ -1,69 +1,103 @@
 # Runbook de despliegue
 
-Cada paso indica dónde se ejecuta y cómo comprobar que salió bien. El CDC está apagado a propósito y se enciende en la fase 5, cuando todo lo demás ya está probado.
+Todo se ejecuta por consola (Azure CLI, go-sqlcmd, dbt), desde la raíz del repositorio. Cada fase indica cómo comprobar que salió bien. Los nombres de recursos viven en `scripts/config.sh`.
 
-## Fase 0 — Requisitos previos
+> **Estado:** las fases 0 a 4 (hasta Bronze) están corregidas y alineadas con el recurso CDC nativo de ADF. Las fases 5 y 6 (Silver/Gold con dbt) siguen esperando la adaptación de Silver al nuevo contrato Bronze (ver `docs/05-captura-cdc-bronze.md`).
 
-- Azure CLI con sesión iniciada (`az login`) y la suscripción correcta seleccionada.
-- Verificar que el workspace `messyops-synapse` y el pool SQL `MessyOpsDW` estén disponibles.
+## Fase 0 — Requisitos
 
-## Fase 1 — Verificación (sin coste)
+- Azure CLI con sesión iniciada: `az login` y `az account set -s <suscripcion>`.
+- `jq`, `python3` y go-sqlcmd (`winget install sqlcmd` o `brew install sqlcmd`).
+- En Windows, ejecutar los `.sh` desde Git Bash o WSL.
+
+## Fase 1 — Verificación (solo lectura, sin costo)
 
 ```bash
 ./scripts/00_verificar_entorno.sh
 ```
 
-Debe listar los cinco recursos de la guía. Guardar la salida como línea base.
+Deja la línea base en `descubrimiento/*.json`. Si algún nombre real difiere de `scripts/config.sh`, cambiarlo ahí (y la cuenta ADLS también en `adf/linkedService/ls_adls_lake.json`). La línea base del 2026-09-21 confirmó: suscripción *Azure for Students*, región `westus`, cuenta `messyopsdl2026`.
 
-## Fase 2 — Objetos SQL en Synapse
+## Fase 2 — Aprovisionamiento (idempotente)
 
-En Synapse Studio, conectado al pool `MessyOpsDW`, en este orden:
+```bash
+./scripts/01_aprovisionar.sh
+# si el workspace de Synapse no existe todavía:
+SYNAPSE_SQL_ADMIN_PWD='...' ./scripts/01_aprovisionar.sh
+```
 
-1. `sql/01_meta_control.sql` — esquemas y tablas de control.
-2. `sql/03_cdc_control.sql` — control de LSN de Bronze (todas las entidades quedan con `activo = 0`).
-3. `sql/00_bronze_external.sql` — tablas externas Bronze sobre el contenedor ADLS.
+El script crea lo que falte y no toca lo que ya existe:
 
-Comprobación: la primera consulta de `sql/04_validaciones.sql` (V1) debe listar los cinco esquemas, las tablas `meta` y las 16 tablas externas `bronze`.
+- ADLS Gen2 con los contenedores `bronze`, `silver` y `gold`.
+- ADF con identidad administrada.
+- Synapse: usa el workspace `messyops-synapse`, que ya existe. **No crea el pool dedicado**, salvo con `CREAR_POOL_DEDICADO=si`; en ese caso lo deja pausado.
+- Reglas de firewall para servicios de Azure y para la IP de la consola.
+- Administrador Microsoft Entra en SQL y en Synapse.
+- Permisos RBAC de ADF y Synapse sobre el lago.
 
-## Fase 3 — dbt
+Comprobación: el paso 7 del script debe decir que el OLTP es compatible con CDC. `GP_S_Gen5_2` (vCore serverless) lo es.
+
+Si `00_verificar_entorno.sh` indica que la cuenta no es ADLS Gen2, el script la migra en sitio solo si se confirma con `MIGRAR_HNS=si ./scripts/01_aprovisionar.sh`. La migración es irreversible.
+
+**Motor de Synapse.** Bronze se despliega por defecto en el pool **serverless Built-in** de `messyops-synapse` (`DW_MODO=serverless` en `scripts/config.sh`), en una base `MessyOpsDW` que el script crea allí. No se cobra por hora, solo por datos leídos. Con `DW_MODO=dedicado` el mismo SQL se despliega en un pool dedicado.
+
+> Ojo: en `messyops-server` también existe una Azure SQL Database llamada `MessyOpsDW`. No es Synapse y ningún script la usa.
+
+## Fase 3 — CDC en el OLTP y Bronze en Synapse
+
+```bash
+./scripts/02_desplegar_sql.sh oltp
+MASTER_KEY_PWD='...' ./scripts/02_desplegar_sql.sh bronze
+```
+
+- `oltp` ejecuta `sql/02_cdc_setup.sql`: CDC en las 16 tablas, retención de 7 días y el usuario de la identidad de ADF con `db_datareader`. La última consulta debe devolver 16 instancias de captura.
+- `bronze` crea la base `MessyOpsDW` en Synapse serverless si hace falta, y ejecuta `sql/00_bronze_external.sql` (16 tablas externas nativas) y `sql/03_bronze_monitoreo.sql` (`meta.vw_bronze_frescura`). Con el lago todavía vacío, las consultas sobre `bronze.*` devuelven 0 filas o un error de "no se encontraron archivos": es lo esperado.
+
+## Fase 4 — Captura CDC nativa de ADF
+
+```bash
+./scripts/03_desplegar_adf_cdc.sh desplegar   # linked services + recurso cdc_oltp_bronze (detenido)
+./scripts/03_desplegar_adf_cdc.sh iniciar     # instantánea inicial + cambios cada 15 min
+./scripts/03_desplegar_adf_cdc.sh estado      # debe responder Running
+```
+
+Tras el primer microlote (la instantánea inicial puede tardar varios minutos):
+
+```bash
+./scripts/02_desplegar_sql.sh validar
+```
+
+Criterios de aceptación de Bronze:
+
+- **B1** (`sql/05_validar_bronze.sql`): 16 tablas externas y la vista de frescura.
+- **B2:** todas las entidades en `OK`, es decir, las claves de Bronze son iguales o más que las filas del OLTP.
+- **`meta.vw_bronze_frescura`:** ninguna entidad en `REVISAR` mientras haya actividad en el OLTP.
+- **Prueba de cambios:** insertar, actualizar y borrar una fila de prueba en `dbo.warehouses`. En el siguiente microlote deben aparecer en `bronze.warehouses` con `cdc_operation` = `I`, `U` y `D`.
+
+Si se edita el recurso desde ADF Studio, traer la versión viva al repositorio con `./scripts/03_desplegar_adf_cdc.sh exportar`.
+
+## Fase 5 — dbt (pendiente de adaptar Silver)
 
 ```bash
 cd dbt
 cp profiles.example.yml ~/.dbt/profiles.yml
 export AZURE_TENANT_ID=...  AZURE_CLIENT_ID=...  AZURE_CLIENT_SECRET=...
-dbt deps
-dbt debug                       # valida conexión
-dbt build --select path:models/silver
-dbt snapshot
-dbt build --select path:models/gold
-dbt docs generate
+dbt deps && dbt debug
+dbt source freshness            # Bronze: ya funciona con el nuevo contrato
 ```
 
-Con Bronze todavía vacío, los modelos se crean sin filas y los tests pasan en vacío: eso confirma que la estructura compila contra el motor real. Para la imagen del ejecutor:
+`dbt build` de Silver y Gold queda para cuando se adapten los modelos. La imagen del ejecutor se construye con `az acr build --registry <acr> --image azuredw-dbt:latest -f scripts/Dockerfile .` desde la raíz.
 
-```bash
-az acr build --registry <acr> --image azuredw-dbt:latest -f scripts/Dockerfile .
-```
+## Fase 6 — Orquestación dbt (pendiente)
 
-## Fase 4 — ADF (trigger detenido)
-
-Conectar messyops-adf al repositorio Git y publicar la carpeta `adf/`. El trigger se publica inicialmente con `runtimeState: Stopped`.
-
-Prueba en seco: lanzar `pl_00_ingesta_cdc_bronze` a mano. Con todas las entidades en `activo = 0`, debe terminar en segundos sin copiar nada.
-
-## Fase 5 — Encender el CDC y la carga (al final)
-
-1. En **MessyOpsOLTP**: ejecutar `sql/02_cdc_setup.sql`. El paso 0 es solo lectura; revisarlo antes de seguir.
-2. En **MessyOpsDW**: `EXEC meta.sp_activar_ingesta_cdc;`
-3. Lanzar `pl_99_maestro_medallion` a mano una vez y revisar el resultado.
-4. Si todo cuadra, arrancar `tr_microlote_5min`.
-
-## Fase 6 — Validación posterior
-
-Ejecutar `sql/04_validaciones.sql` completo. Criterios de aceptación: V3 y V4 sin descuadres, V5 sin huérfanos, V6 sin filas, y ninguna entidad con más de 30 minutos de retraso en V2.
+Publicar `adf/pipeline/pl_10_ejecutar_dbt.json`, `pl_99_maestro_medallion.json` y el trigger `tr_microlote_5min`, que ahora corre cada 15 minutos y arranca detenido. El maestro ya no incluye Bronze.
 
 ## Reversión
 
-- Detener el trigger `tr_microlote_5min`.
-- `UPDATE meta.cdc_control SET activo = 0;`
-- Para deshabilitar el CDC en el OLTP: `EXEC sys.sp_cdc_disable_table ...` por tabla, y `EXEC sys.sp_cdc_disable_db;`.
+```bash
+./scripts/03_desplegar_adf_cdc.sh detener
+```
+
+Con *Azure for Students* conviene detener el recurso CDC al terminar cada sesión de trabajo. Mientras corre, consume cómputo de flujo de datos y además mantiene despierto el OLTP serverless, que no se autopausa.
+
+Mientras el recurso esté detenido menos de 7 días (la retención), al reiniciarlo continúa desde su checkpoint sin perder cambios. Para deshabilitar el CDC en el OLTP: `EXEC sys.sp_cdc_disable_table ...` por tabla y luego `EXEC sys.sp_cdc_disable_db;`.

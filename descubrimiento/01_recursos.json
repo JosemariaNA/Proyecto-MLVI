@@ -1,0 +1,42 @@
+[
+  {
+    "nombre": "messyops-server",
+    "region": "westus",
+    "tipo": "Microsoft.Sql/servers"
+  },
+  {
+    "nombre": "messyops-server/master",
+    "region": "westus",
+    "tipo": "Microsoft.Sql/servers/databases"
+  },
+  {
+    "nombre": "messyops-server/MessyOpsOLTP",
+    "region": "westus",
+    "tipo": "Microsoft.Sql/servers/databases"
+  },
+  {
+    "nombre": "messyops-adf",
+    "region": "westus",
+    "tipo": "Microsoft.DataFactory/factories"
+  },
+  {
+    "nombre": "messyopsdl2026",
+    "region": "westus",
+    "tipo": "Microsoft.Storage/storageAccounts"
+  },
+  {
+    "nombre": "messyops-synapse",
+    "region": "westus",
+    "tipo": "Microsoft.Synapse/workspaces"
+  },
+  {
+    "nombre": "messyops-server/MessyOpsDW",
+    "region": "westus",
+    "tipo": "Microsoft.Sql/servers/databases"
+  },
+  {
+    "nombre": "messyops-synapse/sparkdbt",
+    "region": "westus",
+    "tipo": "Microsoft.Synapse/workspaces/bigDataPools"
+  }
+]

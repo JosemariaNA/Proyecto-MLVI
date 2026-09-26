@@ -1,0 +1,50 @@
+[
+  {
+    "endIpAddress": "0.0.0.0",
+    "id": "/subscriptions/4ddbce0d-5c26-4d5c-88ec-f8c439b0caf5/resourceGroups/AzureDW/providers/Microsoft.Sql/servers/messyops-server/firewallRules/AllowAllWindowsAzureIps",
+    "name": "AllowAllWindowsAzureIps",
+    "resourceGroup": "AzureDW",
+    "startIpAddress": "0.0.0.0",
+    "type": "Microsoft.Sql/servers/firewallRules"
+  },
+  {
+    "endIpAddress": "38.187.3.129",
+    "id": "/subscriptions/4ddbce0d-5c26-4d5c-88ec-f8c439b0caf5/resourceGroups/AzureDW/providers/Microsoft.Sql/servers/messyops-server/firewallRules/ClientIPAddress_2026-9-14_15-47-57",
+    "name": "ClientIPAddress_2026-9-14_15-47-57",
+    "resourceGroup": "AzureDW",
+    "startIpAddress": "38.187.3.129",
+    "type": "Microsoft.Sql/servers/firewallRules"
+  },
+  {
+    "endIpAddress": "38.187.3.128",
+    "id": "/subscriptions/4ddbce0d-5c26-4d5c-88ec-f8c439b0caf5/resourceGroups/AzureDW/providers/Microsoft.Sql/servers/messyops-server/firewallRules/ClientIPAddress_2026-9-14_20-45-45",
+    "name": "ClientIPAddress_2026-9-14_20-45-45",
+    "resourceGroup": "AzureDW",
+    "startIpAddress": "38.187.3.128",
+    "type": "Microsoft.Sql/servers/firewallRules"
+  },
+  {
+    "endIpAddress": "38.187.2.173",
+    "id": "/subscriptions/4ddbce0d-5c26-4d5c-88ec-f8c439b0caf5/resourceGroups/AzureDW/providers/Microsoft.Sql/servers/messyops-server/firewallRules/ClientIPAddress_2026-9-14_2-1-28",
+    "name": "ClientIPAddress_2026-9-14_2-1-28",
+    "resourceGroup": "AzureDW",
+    "startIpAddress": "38.187.2.173",
+    "type": "Microsoft.Sql/servers/firewallRules"
+  },
+  {
+    "endIpAddress": "38.43.143.99",
+    "id": "/subscriptions/4ddbce0d-5c26-4d5c-88ec-f8c439b0caf5/resourceGroups/AzureDW/providers/Microsoft.Sql/servers/messyops-server/firewallRules/ClientIPAddress_2026-9-20_3-27-39",
+    "name": "ClientIPAddress_2026-9-20_3-27-39",
+    "resourceGroup": "AzureDW",
+    "startIpAddress": "38.43.143.99",
+    "type": "Microsoft.Sql/servers/firewallRules"
+  },
+  {
+    "endIpAddress": "38.43.143.99",
+    "id": "/subscriptions/4ddbce0d-5c26-4d5c-88ec-f8c439b0caf5/resourceGroups/AzureDW/providers/Microsoft.Sql/servers/messyops-server/firewallRules/DirecciónIPCliente_2026-09-14_03-08-52",
+    "name": "DirecciónIPCliente_2026-09-14_03-08-52",
+    "resourceGroup": "AzureDW",
+    "startIpAddress": "38.43.143.99",
+    "type": "Microsoft.Sql/servers/firewallRules"
+  }
+]

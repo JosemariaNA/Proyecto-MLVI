@@ -39,7 +39,7 @@ Se eligió **estrella**. La jerarquía de categoría tiene dos niveles y decenas
 
 | Capa | Checkpoint | Dónde vive |
 |---|---|---|
-| Bronze | LSN del CDC | `meta.cdc_control` (lo escribe ADF) |
+| Bronze | LSN del CDC | Interno del recurso CDC nativo de ADF (`cdc_oltp_bronze`) |
 | Silver | `ingested_at` máximo materializado, menos 15 min de margen | `meta.etl_watermark` (post-hook de dbt) |
 | Gold | `ingested_at` del detalle **o** de su cabecera | `meta.etl_watermark` |
 
