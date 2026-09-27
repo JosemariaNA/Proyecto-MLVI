@@ -21,7 +21,7 @@
 						"referenceName": "ls_batch_storage",
 						"type": "LinkedServiceReference"
 					},
-					"folderPath": "bronze",
+					"folderPath": "batch-scripts",
 					"referenceObjects": {
 						"linkedServices": [],
 						"datasets": []
