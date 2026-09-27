@@ -1,7 +1,7 @@
 {
 	"name": "pl_10_ejecutar_dbt",
 	"properties": {
-		"description": "Ejecutor generico de dbt. Levanta un Azure Container Instance efimero con la imagen del proyecto, corre el comando recibido y lo destruye. Se eligio ACI en vez de Azure Batch o Databricks porque solo se factura el tiempo real de ejecucion (segundos por microlote) y no hay cluster encendido entre lotes. Silver y Gold invocan este mismo pipeline con distinta seleccion, de modo que la mecanica de ejecucion vive en un unico sitio.",
+		"description": "Ejecutor generico de dbt sobre Azure Batch. Mediante una Custom Activity, toma un nodo del pool, instala dependencias, clona el repositorio desde GitHub y corre dbt al vuelo. Esto brinda control de cómputo y evita mantener imágenes Docker actualizadas. Silver, Gold y Snapshots invocan este mismo pipeline con distinta seleccion.",
 		"activities": [
 			{
 				"name": "Ejecutar_dbt_en_Batch",
