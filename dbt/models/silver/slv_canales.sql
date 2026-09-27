@@ -1,7 +1,7 @@
 {{ config(
     materialized = 'incremental',
     unique_key   = 'canal_id',
-    distribution = 'HASH(canal_id)',
+    dist = 'HASH(canal_id)',
     incremental_strategy = 'merge'
 ) }}
 

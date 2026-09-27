@@ -1,7 +1,7 @@
 {{ config(
     materialized = 'incremental',
     unique_key   = 'venta_detalle_id',
-    distribution = 'HASH(venta_detalle_id)',
+    dist = 'HASH(venta_detalle_id)',
     incremental_strategy = 'merge'
 ) }}
 
