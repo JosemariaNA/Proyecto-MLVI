@@ -16,9 +16,14 @@
 
 {% macro ultimo_evento_cdc(relacion_origen, clave_negocio, capa, entidad) -%}
     SELECT *
-    FROM {{ relacion_origen }} AS src
-    WHERE 1=1
-    {{ filtro_incremental(capa, entidad) }}
+    FROM (
+        SELECT *,
+               ROW_NUMBER() OVER (PARTITION BY {{ clave_negocio }} ORDER BY (SELECT NULL)) as _rn
+        FROM {{ relacion_origen }}
+        WHERE 1=1
+        {{ filtro_incremental(capa, entidad) }}
+    ) src
+    WHERE _rn = 1
 {%- endmacro %}
 
 
