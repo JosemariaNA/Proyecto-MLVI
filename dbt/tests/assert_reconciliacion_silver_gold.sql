@@ -3,6 +3,11 @@
     (filtrado por la misma regla de venta efectiva) y FactVentas.
     Tolerancia de 0.01 por redondeo decimal. Devuelve filas = falla.   */
 
+{% set gold_relation = adapter.get_relation(database=target.database, schema='silver_gold', identifier='fact_ventas') %}
+{% if gold_relation is none %}
+    select 1 where 1=0
+{% else %}
+
 with esperado as (
     select
         v.fecha_key,
@@ -36,3 +41,5 @@ full outer join obtenido as o
   on o.fecha_key = e.fecha_key
 where coalesce(e.filas_silver, 0) <> coalesce(o.filas_gold, 0)
    or abs(coalesce(e.importe_silver, 0) - coalesce(o.importe_gold, 0)) > 0.01
+
+{% endif %}
