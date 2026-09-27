@@ -1,126 +1,144 @@
 {
-  "name": "pl_99_maestro_medallion",
-  "properties": {
-    "description": "Orquestador del microlote Silver -> Snapshots -> Gold -> calidad. Bronze ya no es una actividad de este pipeline: lo alimenta de forma continua el recurso CDC nativo cdc_oltp_bronze (adf/adfcdc), que guarda su propio checkpoint. Secuencial a proposito: Gold no debe leer un Silver a medio escribir.",
-    "folder": {
-      "name": "medallion"
-    },
-    "annotations": [
-      "orquestacion"
-    ],
-    "parameters": {
-      "subscription_id": {
-        "type": "string"
-      }
-    },
-    "activities": [
-      {
-        "name": "Silver_dbtBuild",
-        "description": "dbt build = run + test. Si un test de Silver falla con severidad error, el microlote se detiene aqui y Gold no se contamina.",
-        "type": "ExecutePipeline",
-        "typeProperties": {
-          "pipeline": {
-            "referenceName": "pl_10_ejecutar_dbt",
-            "type": "PipelineReference"
-          },
-          "waitOnCompletion": true,
-          "parameters": {
-            "subscription_id": {
-              "value": "@pipeline().parameters.subscription_id",
-              "type": "Expression"
-            },
-            "comando": "build",
-            "seleccion": "path:models/silver",
-            "nombre_grupo": "aci-dbt-silver"
-          }
-        }
-      },
-      {
-        "name": "Snapshots_SCD2",
-        "description": "Los snapshots corren entre Silver y Gold: son los que abren y cierran las versiones historicas que Gold consume.",
-        "type": "ExecutePipeline",
-        "dependsOn": [
-          {
-            "activity": "Silver_dbtBuild",
-            "dependencyConditions": [
-              "Succeeded"
-            ]
-          }
-        ],
-        "typeProperties": {
-          "pipeline": {
-            "referenceName": "pl_10_ejecutar_dbt",
-            "type": "PipelineReference"
-          },
-          "waitOnCompletion": true,
-          "parameters": {
-            "subscription_id": {
-              "value": "@pipeline().parameters.subscription_id",
-              "type": "Expression"
-            },
-            "comando": "snapshot",
-            "seleccion": "snp_clientes snp_productos",
-            "nombre_grupo": "aci-dbt-snapshot"
-          }
-        }
-      },
-      {
-        "name": "Gold_dbtBuild",
-        "type": "ExecutePipeline",
-        "dependsOn": [
-          {
-            "activity": "Snapshots_SCD2",
-            "dependencyConditions": [
-              "Succeeded"
-            ]
-          }
-        ],
-        "typeProperties": {
-          "pipeline": {
-            "referenceName": "pl_10_ejecutar_dbt",
-            "type": "PipelineReference"
-          },
-          "waitOnCompletion": true,
-          "parameters": {
-            "subscription_id": {
-              "value": "@pipeline().parameters.subscription_id",
-              "type": "Expression"
-            },
-            "comando": "build",
-            "seleccion": "path:models/gold",
-            "nombre_grupo": "aci-dbt-gold"
-          }
-        }
-      },
-      {
-        "name": "ConsolidarCalidad",
-        "description": "Se ejecuta pase lo que pase: si el microlote fallo, es justamente cuando mas hace falta el registro de calidad.",
-        "type": "ExecutePipeline",
-        "dependsOn": [
-          {
-            "activity": "Gold_dbtBuild",
-            "dependencyConditions": [
-              "Completed"
-            ]
-          }
-        ],
-        "typeProperties": {
-          "pipeline": {
-            "referenceName": "pl_10_ejecutar_dbt",
-            "type": "PipelineReference"
-          },
-          "waitOnCompletion": true,
-          "parameters": {
-            "subscription_id": {
-              "value": "@pipeline().parameters.subscription_id",
-              "type": "Expression"
-            },
-            "comando": "run-operation",
-            "seleccion": "consolidar_calidad",
-            "nombre_grupo": "aci-dbt-calidad"
-          }
-        }
-      }
-    ]
-  }
+	"name": "pl_99_maestro_medallion",
+	"properties": {
+		"description": "Orquestador del microlote Silver -> Snapshots -> Gold -> calidad. Bronze ya no es una actividad de este pipeline: lo alimenta de forma continua el recurso CDC nativo cdc_oltp_bronze (adf/adfcdc), que guarda su propio checkpoint. Secuencial a proposito: Gold no debe leer un Silver a medio escribir.",
+		"activities": [
+			{
+				"name": "Silver_dbtBuild",
+				"description": "dbt build = run + test. Si un test de Silver falla con severidad error, el microlote se detiene aqui y Gold no se contamina.",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_10_ejecutar_dbt",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"subscription_id": {
+							"value": "@pipeline().parameters.subscription_id",
+							"type": "Expression"
+						},
+						"comando": "build",
+						"seleccion": "path:models/silver",
+						"nombre_grupo": "aci-dbt-silver"
+					}
+				}
+			},
+			{
+				"name": "Snapshots_SCD2",
+				"description": "Los snapshots corren entre Silver y Gold: son los que abren y cierran las versiones historicas que Gold consume.",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Silver_dbtBuild",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_10_ejecutar_dbt",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"subscription_id": {
+							"value": "@pipeline().parameters.subscription_id",
+							"type": "Expression"
+						},
+						"comando": "snapshot",
+						"seleccion": "snp_clientes snp_productos",
+						"nombre_grupo": "aci-dbt-snapshot"
+					}
+				}
+			},
+			{
+				"name": "Gold_dbtBuild",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Snapshots_SCD2",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_10_ejecutar_dbt",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"subscription_id": {
+							"value": "@pipeline().parameters.subscription_id",
+							"type": "Expression"
+						},
+						"comando": "build",
+						"seleccion": "path:models/gold",
+						"nombre_grupo": "aci-dbt-gold"
+					}
+				}
+			},
+			{
+				"name": "ConsolidarCalidad",
+				"description": "Se ejecuta pase lo que pase: si el microlote fallo, es justamente cuando mas hace falta el registro de calidad.",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Gold_dbtBuild",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_10_ejecutar_dbt",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"subscription_id": {
+							"value": "@pipeline().parameters.subscription_id",
+							"type": "Expression"
+						},
+						"comando": "run-operation",
+						"seleccion": "consolidar_calidad",
+						"nombre_grupo": "aci-dbt-calidad"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"subscription_id": {
+				"type": "string",
+				"defaultValue": "4ddbce0d-5c26-4d5c-88ec-f8c439b0caf5"
+			}
+		},
+		"folder": {
+			"name": "medallion"
+		},
+		"annotations": [
+			"orquestacion"
+		]
+	}
 }
