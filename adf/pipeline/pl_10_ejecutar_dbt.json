@@ -17,7 +17,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"command": {
-						"value": "/bin/bash -c \"curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc && curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list && sudo apt-get update && sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev python3-pip git && pip3 install dbt-synapse && git clone https://github.com/JosemariaNA/Proyecto-MLVI.git && cd Proyecto-MLVI/dbt && dbt build --profiles-dir . --project-dir . --select @{pipeline().parameters.seleccion} --target prod\"",
+						"value": "/bin/bash -c \"pip3 install dbt-synapse --user && git clone https://github.com/JosemariaNA/Proyecto-MLVI.git && cd Proyecto-MLVI/dbt && ~/.local/bin/dbt build --profiles-dir . --project-dir . --select @{pipeline().parameters.seleccion} --target prod\"",
 						"type": "Expression"
 					},
 					"resourceLinkedService": {
