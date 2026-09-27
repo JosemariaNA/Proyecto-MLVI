@@ -17,7 +17,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"command": {
-						"value": "/bin/bash -c \"pip3 install dbt-synapse --user && rm -rf Proyecto-MLVI && git clone https://github.com/JosemariaNA/Proyecto-MLVI.git && cd Proyecto-MLVI/dbt && mkdir -p ~/.dbt && echo -e 'azuredw:\\n  target: synapse\\n  outputs:\\n    synapse:\\n      type: synapse\\n      driver: \\\"ODBC Driver 18 for SQL Server\\\"\\n      server: messyops-synapse.sql.azuresynapse.net\\n      port: 1433\\n      database: MessyOpsDW\\n      schema: silver\\n      authentication: SQL\\n      user: messy_admin\\n      password: \\\"ProyectoMLVI2026!\\\"\\n      encrypt: true\\n      trust_cert: true\\n      threads: 4\\n      retries: 2' > ~/.dbt/profiles.yml && ~/.local/bin/dbt build --select @{pipeline().parameters.seleccion}\"",
+						"value": "/bin/bash -c \"pip3 install dbt-synapse --user && rm -rf Proyecto-MLVI && git clone https://github.com/JosemariaNA/Proyecto-MLVI.git && cd Proyecto-MLVI/dbt && mkdir -p ~/.dbt && echo -e 'azuredw:\\n  target: synapse\\n  outputs:\\n    synapse:\\n      type: synapse\\n      driver: \\\"ODBC Driver 18 for SQL Server\\\"\\n      server: messyops-synapse.sql.azuresynapse.net\\n      port: 1433\\n      database: MessyOpsDW\\n      schema: silver\\n      authentication: SQL\\n      user: messy_admin\\n      password: \\\"ProyectoMLVI2026!\\\"\\n      encrypt: true\\n      trust_cert: true\\n      threads: 4\\n      retries: 2' > ~/.dbt/profiles.yml && ~/.local/bin/dbt deps && ~/.local/bin/dbt build --select @{pipeline().parameters.seleccion}\"",
 						"type": "Expression"
 					},
 					"resourceLinkedService": {
