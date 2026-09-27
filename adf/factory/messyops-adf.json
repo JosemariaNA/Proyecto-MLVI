@@ -1,0 +1,15 @@
+{
+	"name": "messyops-adf",
+	"properties": {
+		"trustModeClaimForMi": {
+			"value": "Disabled",
+			"editable": true
+		}
+	},
+	"location": "westus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "35ccdcb5-743c-4ee0-bd79-a90bebee2de7",
+		"tenantId": "29b04522-efb6-422d-8d80-d86a2967b572"
+	}
+}

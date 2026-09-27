@@ -1,963 +1,964 @@
 {
-  "name": "cdc_oltp_bronze",
-  "properties": {
-    "Policy": {
-      "mode": "Microbatch",
-      "recurrence": {
-        "frequency": "Minute",
-        "interval": 15
-      }
-    },
-    "SourceConnectionsInfo": [
-      {
-        "Connection": {
-          "commonDslConnectorProperties": [
-            {
-              "name": "allowSchemaDrift",
-              "value": true
-            },
-            {
-              "name": "inferDriftedColumnTypes",
-              "value": true
-            },
-            {
-              "name": "format",
-              "value": "table"
-            },
-            {
-              "name": "store",
-              "value": "sqlserver"
-            },
-            {
-              "name": "skipInitialLoad",
-              "value": false
-            }
-          ],
-          "isInlineDataset": true,
-          "linkedService": {
-            "referenceName": "ls_oltp_messyops",
-            "type": "LinkedServiceReference"
-          },
-          "linkedServiceType": "AzureSqlDatabase",
-          "type": "linkedservicetype"
-        },
-        "SourceEntities": [
-          {
-            "name": "dbo.customers",
-            "properties": {
-              "dslConnectorProperties": [
-                {
-                  "name": "schemaName",
-                  "value": "dbo"
-                },
-                {
-                  "name": "tableName",
-                  "value": "customers"
-                },
-                {
-                  "name": "enableNativeCdc",
-                  "value": true
-                },
-                {
-                  "name": "netChanges",
-                  "value": true
-                }
-              ],
-              "schema": []
-            }
-          },
-          {
-            "name": "dbo.inventory_snapshots",
-            "properties": {
-              "dslConnectorProperties": [
-                {
-                  "name": "schemaName",
-                  "value": "dbo"
-                },
-                {
-                  "name": "tableName",
-                  "value": "inventory_snapshots"
-                },
-                {
-                  "name": "enableNativeCdc",
-                  "value": true
-                },
-                {
-                  "name": "netChanges",
-                  "value": true
-                }
-              ],
-              "schema": []
-            }
-          },
-          {
-            "name": "dbo.invoices",
-            "properties": {
-              "dslConnectorProperties": [
-                {
-                  "name": "schemaName",
-                  "value": "dbo"
-                },
-                {
-                  "name": "tableName",
-                  "value": "invoices"
-                },
-                {
-                  "name": "enableNativeCdc",
-                  "value": true
-                },
-                {
-                  "name": "netChanges",
-                  "value": true
-                }
-              ],
-              "schema": []
-            }
-          },
-          {
-            "name": "dbo.payments",
-            "properties": {
-              "dslConnectorProperties": [
-                {
-                  "name": "schemaName",
-                  "value": "dbo"
-                },
-                {
-                  "name": "tableName",
-                  "value": "payments"
-                },
-                {
-                  "name": "enableNativeCdc",
-                  "value": true
-                },
-                {
-                  "name": "netChanges",
-                  "value": true
-                }
-              ],
-              "schema": []
-            }
-          },
-          {
-            "name": "dbo.products",
-            "properties": {
-              "dslConnectorProperties": [
-                {
-                  "name": "schemaName",
-                  "value": "dbo"
-                },
-                {
-                  "name": "tableName",
-                  "value": "products"
-                },
-                {
-                  "name": "enableNativeCdc",
-                  "value": true
-                },
-                {
-                  "name": "netChanges",
-                  "value": true
-                }
-              ],
-              "schema": []
-            }
-          },
-          {
-            "name": "dbo.purchase_order_lines",
-            "properties": {
-              "dslConnectorProperties": [
-                {
-                  "name": "schemaName",
-                  "value": "dbo"
-                },
-                {
-                  "name": "tableName",
-                  "value": "purchase_order_lines"
-                },
-                {
-                  "name": "enableNativeCdc",
-                  "value": true
-                },
-                {
-                  "name": "netChanges",
-                  "value": true
-                }
-              ],
-              "schema": []
-            }
-          },
-          {
-            "name": "dbo.purchase_orders",
-            "properties": {
-              "dslConnectorProperties": [
-                {
-                  "name": "schemaName",
-                  "value": "dbo"
-                },
-                {
-                  "name": "tableName",
-                  "value": "purchase_orders"
-                },
-                {
-                  "name": "enableNativeCdc",
-                  "value": true
-                },
-                {
-                  "name": "netChanges",
-                  "value": true
-                }
-              ],
-              "schema": []
-            }
-          },
-          {
-            "name": "dbo.returns",
-            "properties": {
-              "dslConnectorProperties": [
-                {
-                  "name": "schemaName",
-                  "value": "dbo"
-                },
-                {
-                  "name": "tableName",
-                  "value": "returns"
-                },
-                {
-                  "name": "enableNativeCdc",
-                  "value": true
-                },
-                {
-                  "name": "netChanges",
-                  "value": true
-                }
-              ],
-              "schema": []
-            }
-          },
-          {
-            "name": "dbo.sales_order_lines",
-            "properties": {
-              "dslConnectorProperties": [
-                {
-                  "name": "schemaName",
-                  "value": "dbo"
-                },
-                {
-                  "name": "tableName",
-                  "value": "sales_order_lines"
-                },
-                {
-                  "name": "enableNativeCdc",
-                  "value": true
-                },
-                {
-                  "name": "netChanges",
-                  "value": true
-                }
-              ],
-              "schema": []
-            }
-          },
-          {
-            "name": "dbo.sales_orders",
-            "properties": {
-              "dslConnectorProperties": [
-                {
-                  "name": "schemaName",
-                  "value": "dbo"
-                },
-                {
-                  "name": "tableName",
-                  "value": "sales_orders"
-                },
-                {
-                  "name": "enableNativeCdc",
-                  "value": true
-                },
-                {
-                  "name": "netChanges",
-                  "value": true
-                }
-              ],
-              "schema": []
-            }
-          },
-          {
-            "name": "dbo.shipments",
-            "properties": {
-              "dslConnectorProperties": [
-                {
-                  "name": "schemaName",
-                  "value": "dbo"
-                },
-                {
-                  "name": "tableName",
-                  "value": "shipments"
-                },
-                {
-                  "name": "enableNativeCdc",
-                  "value": true
-                },
-                {
-                  "name": "netChanges",
-                  "value": true
-                }
-              ],
-              "schema": []
-            }
-          },
-          {
-            "name": "dbo.supplier_invoices",
-            "properties": {
-              "dslConnectorProperties": [
-                {
-                  "name": "schemaName",
-                  "value": "dbo"
-                },
-                {
-                  "name": "tableName",
-                  "value": "supplier_invoices"
-                },
-                {
-                  "name": "enableNativeCdc",
-                  "value": true
-                },
-                {
-                  "name": "netChanges",
-                  "value": true
-                }
-              ],
-              "schema": []
-            }
-          },
-          {
-            "name": "dbo.supplier_payments",
-            "properties": {
-              "dslConnectorProperties": [
-                {
-                  "name": "schemaName",
-                  "value": "dbo"
-                },
-                {
-                  "name": "tableName",
-                  "value": "supplier_payments"
-                },
-                {
-                  "name": "enableNativeCdc",
-                  "value": true
-                },
-                {
-                  "name": "netChanges",
-                  "value": true
-                }
-              ],
-              "schema": []
-            }
-          },
-          {
-            "name": "dbo.suppliers",
-            "properties": {
-              "dslConnectorProperties": [
-                {
-                  "name": "schemaName",
-                  "value": "dbo"
-                },
-                {
-                  "name": "tableName",
-                  "value": "suppliers"
-                },
-                {
-                  "name": "enableNativeCdc",
-                  "value": true
-                },
-                {
-                  "name": "netChanges",
-                  "value": true
-                }
-              ],
-              "schema": []
-            }
-          },
-          {
-            "name": "dbo.support_tickets",
-            "properties": {
-              "dslConnectorProperties": [
-                {
-                  "name": "schemaName",
-                  "value": "dbo"
-                },
-                {
-                  "name": "tableName",
-                  "value": "support_tickets"
-                },
-                {
-                  "name": "enableNativeCdc",
-                  "value": true
-                },
-                {
-                  "name": "netChanges",
-                  "value": true
-                }
-              ],
-              "schema": []
-            }
-          },
-          {
-            "name": "dbo.warehouses",
-            "properties": {
-              "dslConnectorProperties": [
-                {
-                  "name": "schemaName",
-                  "value": "dbo"
-                },
-                {
-                  "name": "tableName",
-                  "value": "warehouses"
-                },
-                {
-                  "name": "enableNativeCdc",
-                  "value": true
-                },
-                {
-                  "name": "netChanges",
-                  "value": true
-                }
-              ],
-              "schema": []
-            }
-          }
-        ]
-      }
-    ],
-    "TargetConnectionsInfo": [
-      {
-        "Connection": {
-          "commonDslConnectorProperties": [
-            {
-              "name": "allowSchemaDrift",
-              "value": true
-            },
-            {
-              "name": "inferDriftedColumnTypes",
-              "value": true
-            },
-            {
-              "name": "format",
-              "value": "parquet"
-            }
-          ],
-          "isInlineDataset": true,
-          "linkedService": {
-            "referenceName": "ls_adls_lake",
-            "type": "LinkedServiceReference"
-          },
-          "linkedServiceType": "AzureBlobFS",
-          "type": "linkedservicetype"
-        },
-        "DataMapperMappings": [
-          {
-            "attributeMappingInfo": {
-              "attributeMappings": []
-            },
-            "sourceConnectionReference": {
-              "connectionName": "ls_oltp_messyops",
-              "type": "linkedservicetype"
-            },
-            "sourceEntityName": "dbo.customers",
-            "targetEntityName": "bronze/dbo.customers"
-          },
-          {
-            "attributeMappingInfo": {
-              "attributeMappings": []
-            },
-            "sourceConnectionReference": {
-              "connectionName": "ls_oltp_messyops",
-              "type": "linkedservicetype"
-            },
-            "sourceEntityName": "dbo.inventory_snapshots",
-            "targetEntityName": "bronze/dbo.inventory_snapshots"
-          },
-          {
-            "attributeMappingInfo": {
-              "attributeMappings": []
-            },
-            "sourceConnectionReference": {
-              "connectionName": "ls_oltp_messyops",
-              "type": "linkedservicetype"
-            },
-            "sourceEntityName": "dbo.invoices",
-            "targetEntityName": "bronze/dbo.invoices"
-          },
-          {
-            "attributeMappingInfo": {
-              "attributeMappings": []
-            },
-            "sourceConnectionReference": {
-              "connectionName": "ls_oltp_messyops",
-              "type": "linkedservicetype"
-            },
-            "sourceEntityName": "dbo.payments",
-            "targetEntityName": "bronze/dbo.payments"
-          },
-          {
-            "attributeMappingInfo": {
-              "attributeMappings": []
-            },
-            "sourceConnectionReference": {
-              "connectionName": "ls_oltp_messyops",
-              "type": "linkedservicetype"
-            },
-            "sourceEntityName": "dbo.products",
-            "targetEntityName": "bronze/dbo.products"
-          },
-          {
-            "attributeMappingInfo": {
-              "attributeMappings": []
-            },
-            "sourceConnectionReference": {
-              "connectionName": "ls_oltp_messyops",
-              "type": "linkedservicetype"
-            },
-            "sourceEntityName": "dbo.purchase_order_lines",
-            "targetEntityName": "bronze/dbo.purchase_order_lines"
-          },
-          {
-            "attributeMappingInfo": {
-              "attributeMappings": []
-            },
-            "sourceConnectionReference": {
-              "connectionName": "ls_oltp_messyops",
-              "type": "linkedservicetype"
-            },
-            "sourceEntityName": "dbo.purchase_orders",
-            "targetEntityName": "bronze/dbo.purchase_orders"
-          },
-          {
-            "attributeMappingInfo": {
-              "attributeMappings": []
-            },
-            "sourceConnectionReference": {
-              "connectionName": "ls_oltp_messyops",
-              "type": "linkedservicetype"
-            },
-            "sourceEntityName": "dbo.returns",
-            "targetEntityName": "bronze/dbo.returns"
-          },
-          {
-            "attributeMappingInfo": {
-              "attributeMappings": []
-            },
-            "sourceConnectionReference": {
-              "connectionName": "ls_oltp_messyops",
-              "type": "linkedservicetype"
-            },
-            "sourceEntityName": "dbo.sales_order_lines",
-            "targetEntityName": "bronze/dbo.sales_order_lines"
-          },
-          {
-            "attributeMappingInfo": {
-              "attributeMappings": []
-            },
-            "sourceConnectionReference": {
-              "connectionName": "ls_oltp_messyops",
-              "type": "linkedservicetype"
-            },
-            "sourceEntityName": "dbo.sales_orders",
-            "targetEntityName": "bronze/dbo.sales_orders"
-          },
-          {
-            "attributeMappingInfo": {
-              "attributeMappings": []
-            },
-            "sourceConnectionReference": {
-              "connectionName": "ls_oltp_messyops",
-              "type": "linkedservicetype"
-            },
-            "sourceEntityName": "dbo.shipments",
-            "targetEntityName": "bronze/dbo.shipments"
-          },
-          {
-            "attributeMappingInfo": {
-              "attributeMappings": []
-            },
-            "sourceConnectionReference": {
-              "connectionName": "ls_oltp_messyops",
-              "type": "linkedservicetype"
-            },
-            "sourceEntityName": "dbo.supplier_invoices",
-            "targetEntityName": "bronze/dbo.supplier_invoices"
-          },
-          {
-            "attributeMappingInfo": {
-              "attributeMappings": []
-            },
-            "sourceConnectionReference": {
-              "connectionName": "ls_oltp_messyops",
-              "type": "linkedservicetype"
-            },
-            "sourceEntityName": "dbo.supplier_payments",
-            "targetEntityName": "bronze/dbo.supplier_payments"
-          },
-          {
-            "attributeMappingInfo": {
-              "attributeMappings": []
-            },
-            "sourceConnectionReference": {
-              "connectionName": "ls_oltp_messyops",
-              "type": "linkedservicetype"
-            },
-            "sourceEntityName": "dbo.suppliers",
-            "targetEntityName": "bronze/dbo.suppliers"
-          },
-          {
-            "attributeMappingInfo": {
-              "attributeMappings": []
-            },
-            "sourceConnectionReference": {
-              "connectionName": "ls_oltp_messyops",
-              "type": "linkedservicetype"
-            },
-            "sourceEntityName": "dbo.support_tickets",
-            "targetEntityName": "bronze/dbo.support_tickets"
-          },
-          {
-            "attributeMappingInfo": {
-              "attributeMappings": []
-            },
-            "sourceConnectionReference": {
-              "connectionName": "ls_oltp_messyops",
-              "type": "linkedservicetype"
-            },
-            "sourceEntityName": "dbo.warehouses",
-            "targetEntityName": "bronze/dbo.warehouses"
-          }
-        ],
-        "Relationships": [],
-        "TargetEntities": [
-          {
-            "name": "bronze/dbo.customers",
-            "properties": {
-              "dslConnectorProperties": [
-                {
-                  "name": "container",
-                  "value": "bronze"
-                },
-                {
-                  "name": "fileSystem",
-                  "value": "bronze"
-                },
-                {
-                  "name": "folderPath",
-                  "value": "dbo.customers"
-                }
-              ],
-              "schema": []
-            }
-          },
-          {
-            "name": "bronze/dbo.inventory_snapshots",
-            "properties": {
-              "dslConnectorProperties": [
-                {
-                  "name": "container",
-                  "value": "bronze"
-                },
-                {
-                  "name": "fileSystem",
-                  "value": "bronze"
-                },
-                {
-                  "name": "folderPath",
-                  "value": "dbo.inventory_snapshots"
-                }
-              ],
-              "schema": []
-            }
-          },
-          {
-            "name": "bronze/dbo.invoices",
-            "properties": {
-              "dslConnectorProperties": [
-                {
-                  "name": "container",
-                  "value": "bronze"
-                },
-                {
-                  "name": "fileSystem",
-                  "value": "bronze"
-                },
-                {
-                  "name": "folderPath",
-                  "value": "dbo.invoices"
-                }
-              ],
-              "schema": []
-            }
-          },
-          {
-            "name": "bronze/dbo.payments",
-            "properties": {
-              "dslConnectorProperties": [
-                {
-                  "name": "container",
-                  "value": "bronze"
-                },
-                {
-                  "name": "fileSystem",
-                  "value": "bronze"
-                },
-                {
-                  "name": "folderPath",
-                  "value": "dbo.payments"
-                }
-              ],
-              "schema": []
-            }
-          },
-          {
-            "name": "bronze/dbo.products",
-            "properties": {
-              "dslConnectorProperties": [
-                {
-                  "name": "container",
-                  "value": "bronze"
-                },
-                {
-                  "name": "fileSystem",
-                  "value": "bronze"
-                },
-                {
-                  "name": "folderPath",
-                  "value": "dbo.products"
-                }
-              ],
-              "schema": []
-            }
-          },
-          {
-            "name": "bronze/dbo.purchase_order_lines",
-            "properties": {
-              "dslConnectorProperties": [
-                {
-                  "name": "container",
-                  "value": "bronze"
-                },
-                {
-                  "name": "fileSystem",
-                  "value": "bronze"
-                },
-                {
-                  "name": "folderPath",
-                  "value": "dbo.purchase_order_lines"
-                }
-              ],
-              "schema": []
-            }
-          },
-          {
-            "name": "bronze/dbo.purchase_orders",
-            "properties": {
-              "dslConnectorProperties": [
-                {
-                  "name": "container",
-                  "value": "bronze"
-                },
-                {
-                  "name": "fileSystem",
-                  "value": "bronze"
-                },
-                {
-                  "name": "folderPath",
-                  "value": "dbo.purchase_orders"
-                }
-              ],
-              "schema": []
-            }
-          },
-          {
-            "name": "bronze/dbo.returns",
-            "properties": {
-              "dslConnectorProperties": [
-                {
-                  "name": "container",
-                  "value": "bronze"
-                },
-                {
-                  "name": "fileSystem",
-                  "value": "bronze"
-                },
-                {
-                  "name": "folderPath",
-                  "value": "dbo.returns"
-                }
-              ],
-              "schema": []
-            }
-          },
-          {
-            "name": "bronze/dbo.sales_order_lines",
-            "properties": {
-              "dslConnectorProperties": [
-                {
-                  "name": "container",
-                  "value": "bronze"
-                },
-                {
-                  "name": "fileSystem",
-                  "value": "bronze"
-                },
-                {
-                  "name": "folderPath",
-                  "value": "dbo.sales_order_lines"
-                }
-              ],
-              "schema": []
-            }
-          },
-          {
-            "name": "bronze/dbo.sales_orders",
-            "properties": {
-              "dslConnectorProperties": [
-                {
-                  "name": "container",
-                  "value": "bronze"
-                },
-                {
-                  "name": "fileSystem",
-                  "value": "bronze"
-                },
-                {
-                  "name": "folderPath",
-                  "value": "dbo.sales_orders"
-                }
-              ],
-              "schema": []
-            }
-          },
-          {
-            "name": "bronze/dbo.shipments",
-            "properties": {
-              "dslConnectorProperties": [
-                {
-                  "name": "container",
-                  "value": "bronze"
-                },
-                {
-                  "name": "fileSystem",
-                  "value": "bronze"
-                },
-                {
-                  "name": "folderPath",
-                  "value": "dbo.shipments"
-                }
-              ],
-              "schema": []
-            }
-          },
-          {
-            "name": "bronze/dbo.supplier_invoices",
-            "properties": {
-              "dslConnectorProperties": [
-                {
-                  "name": "container",
-                  "value": "bronze"
-                },
-                {
-                  "name": "fileSystem",
-                  "value": "bronze"
-                },
-                {
-                  "name": "folderPath",
-                  "value": "dbo.supplier_invoices"
-                }
-              ],
-              "schema": []
-            }
-          },
-          {
-            "name": "bronze/dbo.supplier_payments",
-            "properties": {
-              "dslConnectorProperties": [
-                {
-                  "name": "container",
-                  "value": "bronze"
-                },
-                {
-                  "name": "fileSystem",
-                  "value": "bronze"
-                },
-                {
-                  "name": "folderPath",
-                  "value": "dbo.supplier_payments"
-                }
-              ],
-              "schema": []
-            }
-          },
-          {
-            "name": "bronze/dbo.suppliers",
-            "properties": {
-              "dslConnectorProperties": [
-                {
-                  "name": "container",
-                  "value": "bronze"
-                },
-                {
-                  "name": "fileSystem",
-                  "value": "bronze"
-                },
-                {
-                  "name": "folderPath",
-                  "value": "dbo.suppliers"
-                }
-              ],
-              "schema": []
-            }
-          },
-          {
-            "name": "bronze/dbo.support_tickets",
-            "properties": {
-              "dslConnectorProperties": [
-                {
-                  "name": "container",
-                  "value": "bronze"
-                },
-                {
-                  "name": "fileSystem",
-                  "value": "bronze"
-                },
-                {
-                  "name": "folderPath",
-                  "value": "dbo.support_tickets"
-                }
-              ],
-              "schema": []
-            }
-          },
-          {
-            "name": "bronze/dbo.warehouses",
-            "properties": {
-              "dslConnectorProperties": [
-                {
-                  "name": "container",
-                  "value": "bronze"
-                },
-                {
-                  "name": "fileSystem",
-                  "value": "bronze"
-                },
-                {
-                  "name": "folderPath",
-                  "value": "dbo.warehouses"
-                }
-              ],
-              "schema": []
-            }
-          }
-        ]
-      }
-    ],
-    "allowVNetOverride": false,
-    "status": "Stopped"
-  }
+	"name": "cdc_oltp_bronze",
+	"properties": {
+		"SourceConnectionsInfo": [
+			{
+				"SourceEntities": [
+					{
+						"name": "dbo.customers",
+						"properties": {
+							"schema": [],
+							"dslConnectorProperties": [
+								{
+									"name": "schemaName",
+									"value": "dbo"
+								},
+								{
+									"name": "tableName",
+									"value": "customers"
+								},
+								{
+									"name": "enableNativeCdc",
+									"value": true
+								},
+								{
+									"name": "netChanges",
+									"value": true
+								}
+							]
+						}
+					},
+					{
+						"name": "dbo.inventory_snapshots",
+						"properties": {
+							"schema": [],
+							"dslConnectorProperties": [
+								{
+									"name": "schemaName",
+									"value": "dbo"
+								},
+								{
+									"name": "tableName",
+									"value": "inventory_snapshots"
+								},
+								{
+									"name": "enableNativeCdc",
+									"value": true
+								},
+								{
+									"name": "netChanges",
+									"value": true
+								}
+							]
+						}
+					},
+					{
+						"name": "dbo.invoices",
+						"properties": {
+							"schema": [],
+							"dslConnectorProperties": [
+								{
+									"name": "schemaName",
+									"value": "dbo"
+								},
+								{
+									"name": "tableName",
+									"value": "invoices"
+								},
+								{
+									"name": "enableNativeCdc",
+									"value": true
+								},
+								{
+									"name": "netChanges",
+									"value": true
+								}
+							]
+						}
+					},
+					{
+						"name": "dbo.payments",
+						"properties": {
+							"schema": [],
+							"dslConnectorProperties": [
+								{
+									"name": "schemaName",
+									"value": "dbo"
+								},
+								{
+									"name": "tableName",
+									"value": "payments"
+								},
+								{
+									"name": "enableNativeCdc",
+									"value": true
+								},
+								{
+									"name": "netChanges",
+									"value": true
+								}
+							]
+						}
+					},
+					{
+						"name": "dbo.products",
+						"properties": {
+							"schema": [],
+							"dslConnectorProperties": [
+								{
+									"name": "schemaName",
+									"value": "dbo"
+								},
+								{
+									"name": "tableName",
+									"value": "products"
+								},
+								{
+									"name": "enableNativeCdc",
+									"value": true
+								},
+								{
+									"name": "netChanges",
+									"value": true
+								}
+							]
+						}
+					},
+					{
+						"name": "dbo.purchase_order_lines",
+						"properties": {
+							"schema": [],
+							"dslConnectorProperties": [
+								{
+									"name": "schemaName",
+									"value": "dbo"
+								},
+								{
+									"name": "tableName",
+									"value": "purchase_order_lines"
+								},
+								{
+									"name": "enableNativeCdc",
+									"value": true
+								},
+								{
+									"name": "netChanges",
+									"value": true
+								}
+							]
+						}
+					},
+					{
+						"name": "dbo.purchase_orders",
+						"properties": {
+							"schema": [],
+							"dslConnectorProperties": [
+								{
+									"name": "schemaName",
+									"value": "dbo"
+								},
+								{
+									"name": "tableName",
+									"value": "purchase_orders"
+								},
+								{
+									"name": "enableNativeCdc",
+									"value": true
+								},
+								{
+									"name": "netChanges",
+									"value": true
+								}
+							]
+						}
+					},
+					{
+						"name": "dbo.returns",
+						"properties": {
+							"schema": [],
+							"dslConnectorProperties": [
+								{
+									"name": "schemaName",
+									"value": "dbo"
+								},
+								{
+									"name": "tableName",
+									"value": "returns"
+								},
+								{
+									"name": "enableNativeCdc",
+									"value": true
+								},
+								{
+									"name": "netChanges",
+									"value": true
+								}
+							]
+						}
+					},
+					{
+						"name": "dbo.sales_order_lines",
+						"properties": {
+							"schema": [],
+							"dslConnectorProperties": [
+								{
+									"name": "schemaName",
+									"value": "dbo"
+								},
+								{
+									"name": "tableName",
+									"value": "sales_order_lines"
+								},
+								{
+									"name": "enableNativeCdc",
+									"value": true
+								},
+								{
+									"name": "netChanges",
+									"value": true
+								}
+							]
+						}
+					},
+					{
+						"name": "dbo.sales_orders",
+						"properties": {
+							"schema": [],
+							"dslConnectorProperties": [
+								{
+									"name": "schemaName",
+									"value": "dbo"
+								},
+								{
+									"name": "tableName",
+									"value": "sales_orders"
+								},
+								{
+									"name": "enableNativeCdc",
+									"value": true
+								},
+								{
+									"name": "netChanges",
+									"value": true
+								}
+							]
+						}
+					},
+					{
+						"name": "dbo.shipments",
+						"properties": {
+							"schema": [],
+							"dslConnectorProperties": [
+								{
+									"name": "schemaName",
+									"value": "dbo"
+								},
+								{
+									"name": "tableName",
+									"value": "shipments"
+								},
+								{
+									"name": "enableNativeCdc",
+									"value": true
+								},
+								{
+									"name": "netChanges",
+									"value": true
+								}
+							]
+						}
+					},
+					{
+						"name": "dbo.supplier_invoices",
+						"properties": {
+							"schema": [],
+							"dslConnectorProperties": [
+								{
+									"name": "schemaName",
+									"value": "dbo"
+								},
+								{
+									"name": "tableName",
+									"value": "supplier_invoices"
+								},
+								{
+									"name": "enableNativeCdc",
+									"value": true
+								},
+								{
+									"name": "netChanges",
+									"value": true
+								}
+							]
+						}
+					},
+					{
+						"name": "dbo.supplier_payments",
+						"properties": {
+							"schema": [],
+							"dslConnectorProperties": [
+								{
+									"name": "schemaName",
+									"value": "dbo"
+								},
+								{
+									"name": "tableName",
+									"value": "supplier_payments"
+								},
+								{
+									"name": "enableNativeCdc",
+									"value": true
+								},
+								{
+									"name": "netChanges",
+									"value": true
+								}
+							]
+						}
+					},
+					{
+						"name": "dbo.suppliers",
+						"properties": {
+							"schema": [],
+							"dslConnectorProperties": [
+								{
+									"name": "schemaName",
+									"value": "dbo"
+								},
+								{
+									"name": "tableName",
+									"value": "suppliers"
+								},
+								{
+									"name": "enableNativeCdc",
+									"value": true
+								},
+								{
+									"name": "netChanges",
+									"value": true
+								}
+							]
+						}
+					},
+					{
+						"name": "dbo.support_tickets",
+						"properties": {
+							"schema": [],
+							"dslConnectorProperties": [
+								{
+									"name": "schemaName",
+									"value": "dbo"
+								},
+								{
+									"name": "tableName",
+									"value": "support_tickets"
+								},
+								{
+									"name": "enableNativeCdc",
+									"value": true
+								},
+								{
+									"name": "netChanges",
+									"value": true
+								}
+							]
+						}
+					},
+					{
+						"name": "dbo.warehouses",
+						"properties": {
+							"schema": [],
+							"dslConnectorProperties": [
+								{
+									"name": "schemaName",
+									"value": "dbo"
+								},
+								{
+									"name": "tableName",
+									"value": "warehouses"
+								},
+								{
+									"name": "enableNativeCdc",
+									"value": true
+								},
+								{
+									"name": "netChanges",
+									"value": true
+								}
+							]
+						}
+					}
+				],
+				"Connection": {
+					"linkedService": {
+						"referenceName": "ls_oltp_messyops",
+						"type": "LinkedServiceReference"
+					},
+					"linkedServiceType": "AzureSqlDatabase",
+					"type": "linkedservicetype",
+					"isInlineDataset": true,
+					"commonDslConnectorProperties": [
+						{
+							"name": "allowSchemaDrift",
+							"value": true
+						},
+						{
+							"name": "inferDriftedColumnTypes",
+							"value": true
+						},
+						{
+							"name": "format",
+							"value": "table"
+						},
+						{
+							"name": "store",
+							"value": "sqlserver"
+						},
+						{
+							"name": "skipInitialLoad",
+							"value": false
+						}
+					]
+				}
+			}
+		],
+		"TargetConnectionsInfo": [
+			{
+				"TargetEntities": [
+					{
+						"name": "bronze/dbo.customers",
+						"properties": {
+							"schema": [],
+							"dslConnectorProperties": [
+								{
+									"name": "container",
+									"value": "bronze"
+								},
+								{
+									"name": "fileSystem",
+									"value": "bronze"
+								},
+								{
+									"name": "folderPath",
+									"value": "dbo.customers"
+								}
+							]
+						}
+					},
+					{
+						"name": "bronze/dbo.inventory_snapshots",
+						"properties": {
+							"schema": [],
+							"dslConnectorProperties": [
+								{
+									"name": "container",
+									"value": "bronze"
+								},
+								{
+									"name": "fileSystem",
+									"value": "bronze"
+								},
+								{
+									"name": "folderPath",
+									"value": "dbo.inventory_snapshots"
+								}
+							]
+						}
+					},
+					{
+						"name": "bronze/dbo.invoices",
+						"properties": {
+							"schema": [],
+							"dslConnectorProperties": [
+								{
+									"name": "container",
+									"value": "bronze"
+								},
+								{
+									"name": "fileSystem",
+									"value": "bronze"
+								},
+								{
+									"name": "folderPath",
+									"value": "dbo.invoices"
+								}
+							]
+						}
+					},
+					{
+						"name": "bronze/dbo.payments",
+						"properties": {
+							"schema": [],
+							"dslConnectorProperties": [
+								{
+									"name": "container",
+									"value": "bronze"
+								},
+								{
+									"name": "fileSystem",
+									"value": "bronze"
+								},
+								{
+									"name": "folderPath",
+									"value": "dbo.payments"
+								}
+							]
+						}
+					},
+					{
+						"name": "bronze/dbo.products",
+						"properties": {
+							"schema": [],
+							"dslConnectorProperties": [
+								{
+									"name": "container",
+									"value": "bronze"
+								},
+								{
+									"name": "fileSystem",
+									"value": "bronze"
+								},
+								{
+									"name": "folderPath",
+									"value": "dbo.products"
+								}
+							]
+						}
+					},
+					{
+						"name": "bronze/dbo.purchase_order_lines",
+						"properties": {
+							"schema": [],
+							"dslConnectorProperties": [
+								{
+									"name": "container",
+									"value": "bronze"
+								},
+								{
+									"name": "fileSystem",
+									"value": "bronze"
+								},
+								{
+									"name": "folderPath",
+									"value": "dbo.purchase_order_lines"
+								}
+							]
+						}
+					},
+					{
+						"name": "bronze/dbo.purchase_orders",
+						"properties": {
+							"schema": [],
+							"dslConnectorProperties": [
+								{
+									"name": "container",
+									"value": "bronze"
+								},
+								{
+									"name": "fileSystem",
+									"value": "bronze"
+								},
+								{
+									"name": "folderPath",
+									"value": "dbo.purchase_orders"
+								}
+							]
+						}
+					},
+					{
+						"name": "bronze/dbo.returns",
+						"properties": {
+							"schema": [],
+							"dslConnectorProperties": [
+								{
+									"name": "container",
+									"value": "bronze"
+								},
+								{
+									"name": "fileSystem",
+									"value": "bronze"
+								},
+								{
+									"name": "folderPath",
+									"value": "dbo.returns"
+								}
+							]
+						}
+					},
+					{
+						"name": "bronze/dbo.sales_order_lines",
+						"properties": {
+							"schema": [],
+							"dslConnectorProperties": [
+								{
+									"name": "container",
+									"value": "bronze"
+								},
+								{
+									"name": "fileSystem",
+									"value": "bronze"
+								},
+								{
+									"name": "folderPath",
+									"value": "dbo.sales_order_lines"
+								}
+							]
+						}
+					},
+					{
+						"name": "bronze/dbo.sales_orders",
+						"properties": {
+							"schema": [],
+							"dslConnectorProperties": [
+								{
+									"name": "container",
+									"value": "bronze"
+								},
+								{
+									"name": "fileSystem",
+									"value": "bronze"
+								},
+								{
+									"name": "folderPath",
+									"value": "dbo.sales_orders"
+								}
+							]
+						}
+					},
+					{
+						"name": "bronze/dbo.shipments",
+						"properties": {
+							"schema": [],
+							"dslConnectorProperties": [
+								{
+									"name": "container",
+									"value": "bronze"
+								},
+								{
+									"name": "fileSystem",
+									"value": "bronze"
+								},
+								{
+									"name": "folderPath",
+									"value": "dbo.shipments"
+								}
+							]
+						}
+					},
+					{
+						"name": "bronze/dbo.supplier_invoices",
+						"properties": {
+							"schema": [],
+							"dslConnectorProperties": [
+								{
+									"name": "container",
+									"value": "bronze"
+								},
+								{
+									"name": "fileSystem",
+									"value": "bronze"
+								},
+								{
+									"name": "folderPath",
+									"value": "dbo.supplier_invoices"
+								}
+							]
+						}
+					},
+					{
+						"name": "bronze/dbo.supplier_payments",
+						"properties": {
+							"schema": [],
+							"dslConnectorProperties": [
+								{
+									"name": "container",
+									"value": "bronze"
+								},
+								{
+									"name": "fileSystem",
+									"value": "bronze"
+								},
+								{
+									"name": "folderPath",
+									"value": "dbo.supplier_payments"
+								}
+							]
+						}
+					},
+					{
+						"name": "bronze/dbo.suppliers",
+						"properties": {
+							"schema": [],
+							"dslConnectorProperties": [
+								{
+									"name": "container",
+									"value": "bronze"
+								},
+								{
+									"name": "fileSystem",
+									"value": "bronze"
+								},
+								{
+									"name": "folderPath",
+									"value": "dbo.suppliers"
+								}
+							]
+						}
+					},
+					{
+						"name": "bronze/dbo.support_tickets",
+						"properties": {
+							"schema": [],
+							"dslConnectorProperties": [
+								{
+									"name": "container",
+									"value": "bronze"
+								},
+								{
+									"name": "fileSystem",
+									"value": "bronze"
+								},
+								{
+									"name": "folderPath",
+									"value": "dbo.support_tickets"
+								}
+							]
+						}
+					},
+					{
+						"name": "bronze/dbo.warehouses",
+						"properties": {
+							"schema": [],
+							"dslConnectorProperties": [
+								{
+									"name": "container",
+									"value": "bronze"
+								},
+								{
+									"name": "fileSystem",
+									"value": "bronze"
+								},
+								{
+									"name": "folderPath",
+									"value": "dbo.warehouses"
+								}
+							]
+						}
+					}
+				],
+				"Connection": {
+					"linkedService": {
+						"referenceName": "ls_adls_lake",
+						"type": "LinkedServiceReference"
+					},
+					"linkedServiceType": "AzureBlobFS",
+					"type": "linkedservicetype",
+					"isInlineDataset": true,
+					"commonDslConnectorProperties": [
+						{
+							"name": "allowSchemaDrift",
+							"value": true
+						},
+						{
+							"name": "inferDriftedColumnTypes",
+							"value": true
+						},
+						{
+							"name": "format",
+							"value": "parquet"
+						}
+					]
+				},
+				"DataMapperMappings": [
+					{
+						"targetEntityName": "bronze/dbo.customers",
+						"sourceEntityName": "dbo.customers",
+						"sourceConnectionReference": {
+							"connectionName": "ls_oltp_messyops",
+							"type": "linkedservicetype"
+						},
+						"attributeMappingInfo": {
+							"attributeMappings": []
+						}
+					},
+					{
+						"targetEntityName": "bronze/dbo.inventory_snapshots",
+						"sourceEntityName": "dbo.inventory_snapshots",
+						"sourceConnectionReference": {
+							"connectionName": "ls_oltp_messyops",
+							"type": "linkedservicetype"
+						},
+						"attributeMappingInfo": {
+							"attributeMappings": []
+						}
+					},
+					{
+						"targetEntityName": "bronze/dbo.invoices",
+						"sourceEntityName": "dbo.invoices",
+						"sourceConnectionReference": {
+							"connectionName": "ls_oltp_messyops",
+							"type": "linkedservicetype"
+						},
+						"attributeMappingInfo": {
+							"attributeMappings": []
+						}
+					},
+					{
+						"targetEntityName": "bronze/dbo.payments",
+						"sourceEntityName": "dbo.payments",
+						"sourceConnectionReference": {
+							"connectionName": "ls_oltp_messyops",
+							"type": "linkedservicetype"
+						},
+						"attributeMappingInfo": {
+							"attributeMappings": []
+						}
+					},
+					{
+						"targetEntityName": "bronze/dbo.products",
+						"sourceEntityName": "dbo.products",
+						"sourceConnectionReference": {
+							"connectionName": "ls_oltp_messyops",
+							"type": "linkedservicetype"
+						},
+						"attributeMappingInfo": {
+							"attributeMappings": []
+						}
+					},
+					{
+						"targetEntityName": "bronze/dbo.purchase_order_lines",
+						"sourceEntityName": "dbo.purchase_order_lines",
+						"sourceConnectionReference": {
+							"connectionName": "ls_oltp_messyops",
+							"type": "linkedservicetype"
+						},
+						"attributeMappingInfo": {
+							"attributeMappings": []
+						}
+					},
+					{
+						"targetEntityName": "bronze/dbo.purchase_orders",
+						"sourceEntityName": "dbo.purchase_orders",
+						"sourceConnectionReference": {
+							"connectionName": "ls_oltp_messyops",
+							"type": "linkedservicetype"
+						},
+						"attributeMappingInfo": {
+							"attributeMappings": []
+						}
+					},
+					{
+						"targetEntityName": "bronze/dbo.returns",
+						"sourceEntityName": "dbo.returns",
+						"sourceConnectionReference": {
+							"connectionName": "ls_oltp_messyops",
+							"type": "linkedservicetype"
+						},
+						"attributeMappingInfo": {
+							"attributeMappings": []
+						}
+					},
+					{
+						"targetEntityName": "bronze/dbo.sales_order_lines",
+						"sourceEntityName": "dbo.sales_order_lines",
+						"sourceConnectionReference": {
+							"connectionName": "ls_oltp_messyops",
+							"type": "linkedservicetype"
+						},
+						"attributeMappingInfo": {
+							"attributeMappings": []
+						}
+					},
+					{
+						"targetEntityName": "bronze/dbo.sales_orders",
+						"sourceEntityName": "dbo.sales_orders",
+						"sourceConnectionReference": {
+							"connectionName": "ls_oltp_messyops",
+							"type": "linkedservicetype"
+						},
+						"attributeMappingInfo": {
+							"attributeMappings": []
+						}
+					},
+					{
+						"targetEntityName": "bronze/dbo.shipments",
+						"sourceEntityName": "dbo.shipments",
+						"sourceConnectionReference": {
+							"connectionName": "ls_oltp_messyops",
+							"type": "linkedservicetype"
+						},
+						"attributeMappingInfo": {
+							"attributeMappings": []
+						}
+					},
+					{
+						"targetEntityName": "bronze/dbo.supplier_invoices",
+						"sourceEntityName": "dbo.supplier_invoices",
+						"sourceConnectionReference": {
+							"connectionName": "ls_oltp_messyops",
+							"type": "linkedservicetype"
+						},
+						"attributeMappingInfo": {
+							"attributeMappings": []
+						}
+					},
+					{
+						"targetEntityName": "bronze/dbo.supplier_payments",
+						"sourceEntityName": "dbo.supplier_payments",
+						"sourceConnectionReference": {
+							"connectionName": "ls_oltp_messyops",
+							"type": "linkedservicetype"
+						},
+						"attributeMappingInfo": {
+							"attributeMappings": []
+						}
+					},
+					{
+						"targetEntityName": "bronze/dbo.suppliers",
+						"sourceEntityName": "dbo.suppliers",
+						"sourceConnectionReference": {
+							"connectionName": "ls_oltp_messyops",
+							"type": "linkedservicetype"
+						},
+						"attributeMappingInfo": {
+							"attributeMappings": []
+						}
+					},
+					{
+						"targetEntityName": "bronze/dbo.support_tickets",
+						"sourceEntityName": "dbo.support_tickets",
+						"sourceConnectionReference": {
+							"connectionName": "ls_oltp_messyops",
+							"type": "linkedservicetype"
+						},
+						"attributeMappingInfo": {
+							"attributeMappings": []
+						}
+					},
+					{
+						"targetEntityName": "bronze/dbo.warehouses",
+						"sourceEntityName": "dbo.warehouses",
+						"sourceConnectionReference": {
+							"connectionName": "ls_oltp_messyops",
+							"type": "linkedservicetype"
+						},
+						"attributeMappingInfo": {
+							"attributeMappings": []
+						}
+					}
+				],
+				"Relationships": []
+			}
+		],
+		"Policy": {
+			"recurrence": {
+				"frequency": "Minute",
+				"interval": 15
+			},
+			"mode": "Microbatch"
+		},
+		"status": "PipelineRunCreated",
+		"allowVNetOverride": false,
+		"id": "df78f3d68a734e098b2f9fd19bdfb1cf"
+	}
 }
