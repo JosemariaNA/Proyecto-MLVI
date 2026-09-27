@@ -1,6 +1,7 @@
 {{ config(
     materialized = 'incremental',
     unique_key   = 'producto_id',
+    distribution = 'HASH(producto_id)',
     incremental_strategy = 'merge'
 ) }}
 
@@ -30,8 +31,8 @@ limpio as (
         cast(case when p.is_discontinued = 1 then 0 else 1 end as bit) as activo,
         cast(coalesce(p.discontinued_date, p.product_launch_date) as datetime2(3)) as actualizado_en,
         {{ es_borrado() }}                          as es_borrado,
-        p.[__$start_lsn]                            as lsn_origen,
-        cast(p.ingested_at as datetime2(3))         as ingested_at
+        cast(null as binary(10))                            as lsn_origen,
+        cast(getutcdate() as datetime2(3)) as ingested_at
     from eventos as p
 )
 

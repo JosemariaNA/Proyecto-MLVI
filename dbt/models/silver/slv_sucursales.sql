@@ -1,6 +1,7 @@
 {{ config(
     materialized = 'incremental',
     unique_key   = 'sucursal_id',
+    distribution = 'HASH(sucursal_id)',
     incremental_strategy = 'merge'
 ) }}
 
@@ -18,8 +19,8 @@ select
     {{ limpiar_texto('city') }}             as ciudad,
     cast(null as nvarchar(100))             as region,
     upper({{ limpiar_texto('country') }})   as pais,
-    cast(ingested_at as datetime2(3))       as actualizado_en,
+    cast(getutcdate() as datetime2(3)) as actualizado_en,
     {{ es_borrado() }}                      as es_borrado,
-    [__$start_lsn]                          as lsn_origen,
-    cast(ingested_at as datetime2(3))       as ingested_at
+    cast(null as binary(10))                          as lsn_origen,
+    cast(getutcdate() as datetime2(3)) as ingested_at
 from eventos

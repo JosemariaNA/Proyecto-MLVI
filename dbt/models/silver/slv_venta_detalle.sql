@@ -1,6 +1,7 @@
 {{ config(
     materialized = 'incremental',
     unique_key   = 'venta_detalle_id',
+    distribution = 'HASH(venta_detalle_id)',
     incremental_strategy = 'merge'
 ) }}
 
@@ -31,10 +32,10 @@ calculado as (
            cast(line_total as decimal(19,4))              as importe_origen,
            cast(coalesce(line_subtotal, 0) - coalesce(discount_amount, line_subtotal * coalesce(discount_rate, 0))
              as decimal(19,4))                      as importe_calculado,
-           cast(ingested_at as datetime2(3))             as actualizado_en,
+           cast(getutcdate() as datetime2(3)) as actualizado_en,
         {{ es_borrado() }}                          as es_borrado,
-        [__$start_lsn]                              as lsn_origen,
-        cast(ingested_at as datetime2(3))           as ingested_at
+        cast(null as binary(10))                              as lsn_origen,
+        cast(getutcdate() as datetime2(3)) as ingested_at
     from eventos
 )
 

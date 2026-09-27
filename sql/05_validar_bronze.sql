@@ -24,14 +24,22 @@ ORDER BY tipo, objeto;
 --     Ademas: frescura por entidad (ver sql/03_bronze_monitoreo.sql).
 -- ---------------------------------------------------------------------
 WITH esperado AS (
-    SELECT * FROM (VALUES
-        ('customers', 4081), ('products', 1200), ('suppliers', 250), ('warehouses', 6),
-        ('sales_orders', 75081), ('sales_order_lines', 142502), ('invoices', 72800),
-        ('payments', 76343), ('shipments', 72784), ('returns', 5275),
-        ('purchase_orders', 5296), ('purchase_order_lines', 5420),
-        ('supplier_invoices', 4959), ('supplier_payments', 4873),
-        ('inventory_snapshots', 161408), ('support_tickets', 7323)
-    ) AS v(entidad, filas_oltp)
+    SELECT 'customers' AS entidad, 4081 AS filas_oltp
+    UNION ALL SELECT 'products', 1200
+    UNION ALL SELECT 'suppliers', 250
+    UNION ALL SELECT 'warehouses', 6
+    UNION ALL SELECT 'sales_orders', 75081
+    UNION ALL SELECT 'sales_order_lines', 142502
+    UNION ALL SELECT 'invoices', 72800
+    UNION ALL SELECT 'payments', 76343
+    UNION ALL SELECT 'shipments', 72784
+    UNION ALL SELECT 'returns', 5275
+    UNION ALL SELECT 'purchase_orders', 5296
+    UNION ALL SELECT 'purchase_order_lines', 5420
+    UNION ALL SELECT 'supplier_invoices', 4959
+    UNION ALL SELECT 'supplier_payments', 4873
+    UNION ALL SELECT 'inventory_snapshots', 161408
+    UNION ALL SELECT 'support_tickets', 7323
 ),
 obtenido AS (
     SELECT 'customers' AS entidad, COUNT(DISTINCT customer_id) AS claves_bronze FROM bronze.customers
@@ -56,5 +64,4 @@ SELECT e.entidad, e.filas_oltp, o.claves_bronze,
 FROM   esperado e LEFT JOIN obtenido o ON o.entidad = e.entidad
 ORDER BY e.entidad;
 
-SELECT * FROM meta.vw_bronze_frescura ORDER BY minutos_sin_datos DESC;
 

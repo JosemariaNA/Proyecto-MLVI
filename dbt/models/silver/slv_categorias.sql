@@ -1,6 +1,7 @@
 {{ config(
     materialized = 'incremental',
     unique_key   = 'categoria_id',
+    distribution = 'HASH(categoria_id)',
     incremental_strategy = 'merge'
 ) }}
 
@@ -20,11 +21,11 @@ categorias as (
         cast(null as nvarchar(100)) as categoria_padre_id,
         cast(null as nvarchar(100)) as categoria_padre_nombre,
         cast(0 as bit) as es_borrado,
-        [__$start_lsn] as lsn_origen,
-        cast(ingested_at as datetime2(3)) as ingested_at,
+        cast(null as binary(10)) as lsn_origen,
+        cast(getutcdate() as datetime2(3)) as ingested_at,
         row_number() over (
             partition by upper({{ limpiar_texto('category') }})
-            order by [__$start_lsn] desc, [__$seqval] desc
+            order by upper({{ limpiar_texto('category') }}) desc
         ) as rn
     from eventos
     where {{ limpiar_texto('category') }} is not null

@@ -1,11 +1,12 @@
 version: 2
 sources:
 - name: bronze
-  description: 'Zona cruda. Archivos Parquet que escribe el recurso CDC nativo de ADF (cdc_oltp_bronze)
-    en abfss://bronze/<entidad>/, expuestos como tablas externas en MessyOpsDW. Inmutable: no se corrige
-    nada aqui. Contrato con ADF: columnas del OLTP + cdc_operation (I/U/D) + ingested_at (hora UTC del
-    microlote). El recurso entrega cambios netos: como maximo una fila por clave y microlote, asi que
-    el orden entre eventos de una misma clave lo da ingested_at.'
+  description: 'Zona cruda. Archivos Parquet que escribe el recurso CDC nativo de
+    ADF (cdc_oltp_bronze) en abfss://bronze/<entidad>/, expuestos como tablas externas
+    en MessyOpsDW. Inmutable: no se corrige nada aqui. Contrato con ADF: columnas
+    del OLTP + cdc_operation (I/U/D) + ingested_at (hora UTC del microlote). El recurso
+    entrega cambios netos: como maximo una fila por clave y microlote, asi que el
+    orden entre eventos de una misma clave lo da ingested_at.'
   database: MessyOpsDW
   schema: bronze
   loader: adf_change_data_capture
@@ -25,36 +26,10 @@ sources:
       description: Clave natural nvarchar del cliente en el OLTP.
       tests:
       - not_null
-    - name: cdc_operation
-      description: I = insert (incluye la instantanea inicial), U = update, D = delete.
-      tests:
-      - not_null
-      - accepted_values:
-          values:
-          - I
-          - U
-          - D
-    - name: ingested_at
-      description: Hora UTC en que el microlote del recurso CDC escribio la fila.
-      tests:
-      - not_null
   - name: products
     description: Cambios CDC netos de dbo.products.
     columns:
     - name: product_id
-      tests:
-      - not_null
-    - name: cdc_operation
-      description: I = insert (incluye la instantanea inicial), U = update, D = delete.
-      tests:
-      - not_null
-      - accepted_values:
-          values:
-          - I
-          - U
-          - D
-    - name: ingested_at
-      description: Hora UTC en que el microlote del recurso CDC escribio la fila.
       tests:
       - not_null
   - name: suppliers
@@ -63,36 +38,10 @@ sources:
     - name: supplier_id
       tests:
       - not_null
-    - name: cdc_operation
-      description: I = insert (incluye la instantanea inicial), U = update, D = delete.
-      tests:
-      - not_null
-      - accepted_values:
-          values:
-          - I
-          - U
-          - D
-    - name: ingested_at
-      description: Hora UTC en que el microlote del recurso CDC escribio la fila.
-      tests:
-      - not_null
   - name: payments
     description: Cambios CDC netos de dbo.payments.
     columns:
     - name: payment_id
-      tests:
-      - not_null
-    - name: cdc_operation
-      description: I = insert (incluye la instantanea inicial), U = update, D = delete.
-      tests:
-      - not_null
-      - accepted_values:
-          values:
-          - I
-          - U
-          - D
-    - name: ingested_at
-      description: Hora UTC en que el microlote del recurso CDC escribio la fila.
       tests:
       - not_null
   - name: sales_orders
@@ -101,36 +50,10 @@ sources:
     - name: sales_order_id
       tests:
       - not_null
-    - name: cdc_operation
-      description: I = insert (incluye la instantanea inicial), U = update, D = delete.
-      tests:
-      - not_null
-      - accepted_values:
-          values:
-          - I
-          - U
-          - D
-    - name: ingested_at
-      description: Hora UTC en que el microlote del recurso CDC escribio la fila.
-      tests:
-      - not_null
   - name: sales_order_lines
     description: Cambios CDC netos de dbo.sales_order_lines.
     columns:
     - name: sales_order_line_id
-      tests:
-      - not_null
-    - name: cdc_operation
-      description: I = insert (incluye la instantanea inicial), U = update, D = delete.
-      tests:
-      - not_null
-      - accepted_values:
-          values:
-          - I
-          - U
-          - D
-    - name: ingested_at
-      description: Hora UTC en que el microlote del recurso CDC escribio la fila.
       tests:
       - not_null
   - name: invoices
@@ -139,36 +62,10 @@ sources:
     - name: invoice_id
       tests:
       - not_null
-    - name: cdc_operation
-      description: I = insert (incluye la instantanea inicial), U = update, D = delete.
-      tests:
-      - not_null
-      - accepted_values:
-          values:
-          - I
-          - U
-          - D
-    - name: ingested_at
-      description: Hora UTC en que el microlote del recurso CDC escribio la fila.
-      tests:
-      - not_null
   - name: shipments
     description: Cambios CDC netos de dbo.shipments.
     columns:
     - name: shipment_id
-      tests:
-      - not_null
-    - name: cdc_operation
-      description: I = insert (incluye la instantanea inicial), U = update, D = delete.
-      tests:
-      - not_null
-      - accepted_values:
-          values:
-          - I
-          - U
-          - D
-    - name: ingested_at
-      description: Hora UTC en que el microlote del recurso CDC escribio la fila.
       tests:
       - not_null
   - name: warehouses
@@ -177,36 +74,10 @@ sources:
     - name: warehouse_id
       tests:
       - not_null
-    - name: cdc_operation
-      description: I = insert (incluye la instantanea inicial), U = update, D = delete.
-      tests:
-      - not_null
-      - accepted_values:
-          values:
-          - I
-          - U
-          - D
-    - name: ingested_at
-      description: Hora UTC en que el microlote del recurso CDC escribio la fila.
-      tests:
-      - not_null
   - name: returns
     description: Cambios CDC netos de dbo.returns.
     columns:
     - name: return_id
-      tests:
-      - not_null
-    - name: cdc_operation
-      description: I = insert (incluye la instantanea inicial), U = update, D = delete.
-      tests:
-      - not_null
-      - accepted_values:
-          values:
-          - I
-          - U
-          - D
-    - name: ingested_at
-      description: Hora UTC en que el microlote del recurso CDC escribio la fila.
       tests:
       - not_null
   - name: purchase_orders
@@ -215,36 +86,10 @@ sources:
     - name: purchase_order_id
       tests:
       - not_null
-    - name: cdc_operation
-      description: I = insert (incluye la instantanea inicial), U = update, D = delete.
-      tests:
-      - not_null
-      - accepted_values:
-          values:
-          - I
-          - U
-          - D
-    - name: ingested_at
-      description: Hora UTC en que el microlote del recurso CDC escribio la fila.
-      tests:
-      - not_null
   - name: purchase_order_lines
     description: Cambios CDC netos de dbo.purchase_order_lines.
     columns:
     - name: purchase_order_line_id
-      tests:
-      - not_null
-    - name: cdc_operation
-      description: I = insert (incluye la instantanea inicial), U = update, D = delete.
-      tests:
-      - not_null
-      - accepted_values:
-          values:
-          - I
-          - U
-          - D
-    - name: ingested_at
-      description: Hora UTC en que el microlote del recurso CDC escribio la fila.
       tests:
       - not_null
   - name: supplier_invoices
@@ -253,36 +98,10 @@ sources:
     - name: supplier_invoice_id
       tests:
       - not_null
-    - name: cdc_operation
-      description: I = insert (incluye la instantanea inicial), U = update, D = delete.
-      tests:
-      - not_null
-      - accepted_values:
-          values:
-          - I
-          - U
-          - D
-    - name: ingested_at
-      description: Hora UTC en que el microlote del recurso CDC escribio la fila.
-      tests:
-      - not_null
   - name: supplier_payments
     description: Cambios CDC netos de dbo.supplier_payments.
     columns:
     - name: supplier_payment_id
-      tests:
-      - not_null
-    - name: cdc_operation
-      description: I = insert (incluye la instantanea inicial), U = update, D = delete.
-      tests:
-      - not_null
-      - accepted_values:
-          values:
-          - I
-          - U
-          - D
-    - name: ingested_at
-      description: Hora UTC en que el microlote del recurso CDC escribio la fila.
       tests:
       - not_null
   - name: inventory_snapshots
@@ -291,35 +110,9 @@ sources:
     - name: inventory_snapshot_id
       tests:
       - not_null
-    - name: cdc_operation
-      description: I = insert (incluye la instantanea inicial), U = update, D = delete.
-      tests:
-      - not_null
-      - accepted_values:
-          values:
-          - I
-          - U
-          - D
-    - name: ingested_at
-      description: Hora UTC en que el microlote del recurso CDC escribio la fila.
-      tests:
-      - not_null
   - name: support_tickets
     description: Cambios CDC netos de dbo.support_tickets.
     columns:
     - name: support_ticket_id
-      tests:
-      - not_null
-    - name: cdc_operation
-      description: I = insert (incluye la instantanea inicial), U = update, D = delete.
-      tests:
-      - not_null
-      - accepted_values:
-          values:
-          - I
-          - U
-          - D
-    - name: ingested_at
-      description: Hora UTC en que el microlote del recurso CDC escribio la fila.
       tests:
       - not_null

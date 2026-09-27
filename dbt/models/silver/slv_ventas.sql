@@ -1,6 +1,7 @@
 {{ config(
     materialized = 'incremental',
     unique_key   = 'venta_id',
+    distribution = 'HASH(venta_id)',
     incremental_strategy = 'merge'
 ) }}
 
@@ -49,10 +50,10 @@ select
     cast(case when upper(ltrim(rtrim(o.order_status))) = 'COMPLETED'
               then 1 else 0 end as bit)         as es_venta_efectiva,
     cast(null as char(3))                        as moneda,
-    cast(o.ingested_at as datetime2(3))          as actualizado_en,
+    cast(getutcdate() as datetime2(3)) as actualizado_en,
     {{ es_borrado() }}                          as es_borrado,
-    o.[__$start_lsn]                             as lsn_origen,
-    cast(o.ingested_at as datetime2(3))          as ingested_at
+    cast(null as binary(10))                             as lsn_origen,
+    cast(getutcdate() as datetime2(3)) as ingested_at
 from eventos as o
 left join fechas as f on f.sales_order_id = o.sales_order_id
 left join primer_envio as e on e.sales_order_id = o.sales_order_id

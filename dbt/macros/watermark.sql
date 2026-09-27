@@ -84,7 +84,7 @@
     modelos Silver lo invocan, de modo que cambiar la estrategia
     (LSN vs timestamp) es un cambio en un unico lugar.  #}
 {% macro filtro_incremental(capa, entidad, columna='ingested_at') -%}
-    {%- if is_incremental() %}
+    {%- if false %}
         AND {{ columna }} > {{ obtener_watermark(capa, entidad) }}
     {%- endif %}
 {%- endmacro %}

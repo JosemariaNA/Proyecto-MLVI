@@ -1,0 +1,24 @@
+{
+  "id": "dbtpool",
+  "vmSize": "standard_d2s_v3",
+  "virtualMachineConfiguration": {
+    "imageReference": {
+      "publisher": "canonical",
+      "offer": "0001-com-ubuntu-server-jammy",
+      "sku": "22_04-lts",
+      "version": "latest"
+    },
+    "nodeAgentSKUId": "batch.node.ubuntu 22.04"
+  },
+  "targetDedicatedNodes": 1,
+  "startTask": {
+    "commandLine": "/bin/bash -c \"curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc && curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list && sudo apt-get update && sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18 msodbcsql17 unixodbc-dev python3-pip git\"",
+    "userIdentity": {
+      "autoUser": {
+        "elevationLevel": "admin",
+        "scope": "pool"
+      }
+    },
+    "waitForSuccess": true
+  }
+}

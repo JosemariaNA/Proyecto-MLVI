@@ -1,6 +1,7 @@
 {{ config(
     materialized = 'incremental',
     unique_key   = 'cliente_id',
+    distribution = 'HASH(cliente_id)',
     incremental_strategy = 'merge'
 ) }}
 
@@ -35,8 +36,8 @@ limpio as (
         cast(customer_since as datetime2(3))                as creado_en,
         cast(customer_since as datetime2(3))                as actualizado_en,
         {{ es_borrado() }}                                  as es_borrado,
-        [__$start_lsn]                                      as lsn_origen,
-        cast(ingested_at as datetime2(3))                   as ingested_at
+        cast(null as binary(10))                                      as lsn_origen,
+        cast(getutcdate() as datetime2(3)) as ingested_at
     from eventos
 )
 

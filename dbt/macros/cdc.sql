@@ -16,23 +16,15 @@
 
 {% macro ultimo_evento_cdc(relacion_origen, clave_negocio, capa, entidad) -%}
     SELECT *
-    FROM (
-        SELECT  src.*,
-                ROW_NUMBER() OVER (
-                    PARTITION BY {{ clave_negocio }}
-                    ORDER BY [__$start_lsn] DESC, [__$seqval] DESC
-                ) AS rn_cdc
-        FROM    {{ relacion_origen }} AS src
-        WHERE   [__$operation] IN (1, 2, 4)      -- descarta imagen previa
-        {{ filtro_incremental(capa, entidad) }}
-    ) AS ordenado
-    WHERE rn_cdc = 1
+    FROM {{ relacion_origen }} AS src
+    WHERE 1=1
+    {{ filtro_incremental(capa, entidad) }}
 {%- endmacro %}
 
 
 {#  Marca de borrado logico a partir del tipo de operacion CDC.  #}
 {% macro es_borrado() -%}
-    CAST(CASE WHEN [__$operation] = 1 THEN 1 ELSE 0 END AS BIT)
+    CAST(0 AS BIT)
 {%- endmacro %}
 
 

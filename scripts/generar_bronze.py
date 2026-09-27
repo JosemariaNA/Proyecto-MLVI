@@ -17,7 +17,7 @@ import re
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 DDL = RAIZ / "EstructuraOLTP.sql"
-SALIDA_CDC = RAIZ / "adf" / "adfcdc" / "cdc_oltp_bronze.json"
+SALIDA_CDC = RAIZ / "adf" / "adfcdc" / "cdc_oltp_bronze_v2.json"
 SALIDA_SQL = RAIZ / "sql" / "00_bronze_external.sql"
 
 # Linked services propios del proyecto. 03_desplegar_adf_cdc.sh los crea con
@@ -80,13 +80,13 @@ def tipo_sql(col):
 
 
 def tipo_df(col):
-    """Tipo en el vocabulario del flujo de datos de ADF (solo documental)."""
+    """Tipo en el vocabulario de Datasets de ADF."""
     return {
-        "nvarchar": "string", "varchar": "string", "nchar": "string", "char": "string",
-        "tinyint": "short", "smallint": "short", "int": "integer", "bigint": "long",
-        "float": "double", "real": "float", "bit": "boolean", "date": "date",
-        "datetime2": "timestamp", "datetime": "timestamp", "decimal": "decimal",
-    }.get(col["tipo"], "string")
+        "nvarchar": "String", "varchar": "String", "nchar": "String", "char": "String",
+        "tinyint": "Int16", "smallint": "Int16", "int": "Int32", "bigint": "Int64",
+        "float": "Double", "real": "Single", "bit": "Boolean", "date": "Date",
+        "datetime2": "DateTime", "datetime": "DateTime", "decimal": "Decimal",
+    }.get(col["tipo"], "String")
 
 
 def generar_cdc(tablas):
@@ -106,6 +106,12 @@ def generar_cdc(tablas):
     for tabla, cols in tablas.items():
         origen = f"dbo.{tabla}"
         destino = f"{CONTENEDOR}/{carpeta(tabla)}"
+
+        esquema_fuente = [{"name": c["nombre"], "type": tipo_df(c)} for c in cols]
+        esquema_destino = [{"name": c["nombre"], "type": tipo_df(c)} for c in cols] + [
+            {"name": COL_OPERACION, "type": "String"},
+            {"name": COL_INGESTA, "type": "DateTime"}
+        ]
 
         fuentes.append({
             "name": origen,
@@ -179,7 +185,7 @@ def generar_cdc(tablas):
         })
 
     return {
-        "name": "cdc_oltp_bronze",
+        "name": "cdc_oltp_bronze_v2",
         "properties": {
             "Policy": {"mode": "Microbatch", "recurrence": {"frequency": "Minute", "interval": 15}},
             "SourceConnectionsInfo": [{
@@ -277,7 +283,6 @@ def generar_sql(tablas):
     ]
     for t, cols in tablas.items():
         defs = [f"    [{c['nombre']}] {tipo_sql(c)}" for c in cols]
-        defs += [f"    [{COL_OPERACION}] VARCHAR(1)", f"    [{COL_INGESTA}] DATETIME2(3)"]
         lineas.append(f"CREATE EXTERNAL TABLE bronze.{t} (")
         lineas.append(",\n".join(defs))
         lineas.append(f") WITH (LOCATION = '/{carpeta(t)}/**', DATA_SOURCE = ds_bronze, FILE_FORMAT = ff_parquet);")

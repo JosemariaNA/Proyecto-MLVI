@@ -30,20 +30,20 @@ vars:
 
 models:
   azuredw:
-    +persist_docs:
+    +#persist_docs:
       relation: true
       columns: true
 
     silver:
       +schema: silver
       +materialized: incremental
-      +incremental_strategy: merge
+      +incremental_strategy: delete+insert
       +post-hook: "{{ actualizar_watermark(this, 'silver') }}"
 
     gold:
       +schema: gold
       +materialized: incremental
-      +incremental_strategy: merge
+      +incremental_strategy: delete+insert
       +post-hook: "{{ actualizar_watermark(this, 'gold') }}"
 
 tests:

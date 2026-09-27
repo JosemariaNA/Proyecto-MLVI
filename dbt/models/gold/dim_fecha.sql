@@ -8,12 +8,17 @@
     Se replica en todas las distribuciones: participa en practicamente
     todas las consultas y su tamano lo hace gratuito.                   */
 
-with dias as (
-    {{ dbt_utils.date_spine(
-        datepart  = "day",
-        start_date = "cast('" ~ var('dim_fecha_inicio') ~ "' as date)",
-        end_date   = "cast('" ~ var('dim_fecha_fin')    ~ "' as date)"
-    ) }}
+with
+L0 AS (SELECT c FROM (SELECT 1 AS c UNION ALL SELECT 1) AS v),
+L1 AS (SELECT 1 AS c FROM L0 A CROSS JOIN L0 B),
+L2 AS (SELECT 1 AS c FROM L1 A CROSS JOIN L1 B),
+L3 AS (SELECT 1 AS c FROM L2 A CROSS JOIN L2 B),
+L4 AS (SELECT 1 AS c FROM L3 A CROSS JOIN L3 B),
+Nums AS (SELECT n FROM (SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) - 1 AS n FROM L4) x WHERE n <= 30000),
+dias AS (
+    SELECT cast(dateadd(day, n, cast('{{ var("dim_fecha_inicio") }}' as date)) as date) as date_day
+    FROM Nums
+    WHERE cast(dateadd(day, n, cast('{{ var("dim_fecha_inicio") }}' as date)) as date) <= cast('{{ var("dim_fecha_fin") }}' as date)
 ),
 
 calendario as (
