@@ -5,11 +5,11 @@
 with rangos as (
     select cliente_id as clave_natural, valido_desde, valido_hasta, 'cliente' as dimension
     from {{ ref('dim_cliente') }}
-    where cliente_id <> {{ var('unknown_key', -1) }}
+    where cliente_id <> cast({{ var('unknown_key', -1) }} as nvarchar(50))
     union all
     select producto_id, valido_desde, valido_hasta, 'producto'
     from {{ ref('dim_producto') }}
-    where producto_id <> {{ var('unknown_key', -1) }}
+    where producto_id <> cast({{ var('unknown_key', -1) }} as nvarchar(50))
 )
 
 select a.dimension, a.clave_natural, a.valido_desde, a.valido_hasta
