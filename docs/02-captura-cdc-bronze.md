@@ -34,7 +34,7 @@ Synapse messyops-synapse · pool serverless Built-in · base MessyOpsDW
 
 **Cambios netos (`netChanges = true`).** Con microlotes de 15 minutos, a Silver solo le importa el último estado de cada clave dentro del lote. Los cambios netos entregan como máximo una fila por clave y microlote. Con eso el orden entre eventos de una misma clave lo da `ingested_at`, sin necesidad de exponer el LSN.
 
-**Microlote de 15 minutos.** Es la latencia más baja del modo por lotes del recurso. El trigger de dbt (`tr_microlote_5min`) se alineó a 15 minutos: transformar más seguido de lo que llegan datos solo genera ejecuciones vacías con costo.
+**Microlote de 15 minutos.** Es la latencia más baja del modo por lotes del recurso. El trigger de dbt (`tr_microlote_15min`) se alineó a 15 minutos: transformar más seguido de lo que llegan datos solo genera ejecuciones vacías con costo.
 
 **Contrato Bronze → Silver.** Columnas del OLTP con sus nombres originales, más:
 
@@ -59,10 +59,10 @@ La definición del recurso se validó contra el modelo del SDK oficial de ADF (`
 2. **Que la instantánea inicial complete todas las claves:** consulta B2 de `sql/05_validar_bronze.sql`.
 3. **Si ADF ajusta algo de la definición al publicarla:** `./scripts/03_desplegar_adf_cdc.sh exportar` y revisar el diff en Git.
 
-## Impacto en Silver (pendiente)
+## Impacto en Silver (Completado)
 
-Los modelos Silver todavía esperan el contrato anterior (`__$start_lsn`, `__$seqval`, `__$operation`) y deben adaptarse a este:
+Los macros de Silver ya han sido adaptados al nuevo contrato del recurso CDC nativo:
 
-- **`ultimo_evento_cdc`:** ordenar por `ingested_at` y no descartar imagen previa, porque el recurso no la entrega.
-- **`es_borrado`:** `cdc_operation = 'D'`.
-- **`lsn_origen`:** eliminarlo o sustituirlo por `ingested_at`.
+- **`ultimo_evento_cdc`:** Ahora ordena los eventos usando la fecha de ingesta (`ingested_at DESC`).
+- **`es_borrado`:** Ahora evalúa correctamente la operación de borrado lógica (`cdc_operation = 'D'`).
+- **`lsn_origen`:** Las columnas han quedado obsoletas en los modelos `.sql` y devuelven NULL de forma segura.

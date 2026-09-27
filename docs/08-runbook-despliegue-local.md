@@ -2,7 +2,7 @@
 
 Todo se ejecuta por consola (Azure CLI, go-sqlcmd, dbt), desde la raíz del repositorio. Cada fase indica cómo comprobar que salió bien. Los nombres de recursos viven en `scripts/config.sh`.
 
-> **Estado:** las fases 0 a 4 (hasta Bronze) están corregidas y alineadas con el recurso CDC nativo de ADF. Las fases 5 y 6 (Silver/Gold con dbt) siguen esperando la adaptación de Silver al nuevo contrato Bronze (ver `docs/05-captura-cdc-bronze.md`).
+> **Estado:** Todas las fases del proyecto se encuentran completadas. Las capas Bronze, Silver y Gold están totalmente alineadas con el recurso CDC nativo de ADF, y la orquestación de dbt ocurre exitosamente en Azure Batch.
 
 ## Fase 0 — Requisitos
 
@@ -76,7 +76,7 @@ Criterios de aceptación de Bronze:
 
 Si se edita el recurso desde ADF Studio, traer la versión viva al repositorio con `./scripts/03_desplegar_adf_cdc.sh exportar`.
 
-## Fase 5 — dbt (pendiente de adaptar Silver)
+## Fase 5 — dbt (Silver adaptado a CDC nativo)
 
 ```bash
 cd dbt
@@ -86,11 +86,11 @@ dbt deps && dbt debug
 dbt source freshness            # Bronze: ya funciona con el nuevo contrato
 ```
 
-`dbt build` de Silver y Gold queda para cuando se adapten los modelos. La imagen del ejecutor se construye con `az acr build --registry <acr> --image azuredw-dbt:latest -f scripts/Dockerfile .` desde la raíz.
+El `dbt build` de Silver y Gold ya está completamente adaptado. La ejecución de dbt se realiza mediante **Azure Batch**, clonando el código fuente de este repositorio directamente desde GitHub en cada ejecución, por lo que ya no es necesario compilar imágenes Docker en ACR.
 
-## Fase 6 — Orquestación dbt (pendiente)
+## Fase 6 — Orquestación dbt
 
-Publicar `adf/pipeline/pl_10_ejecutar_dbt.json`, `pl_99_maestro_medallion.json` y el trigger `tr_microlote_5min`, que ahora corre cada 15 minutos y arranca detenido. El maestro ya no incluye Bronze.
+Publicar `adf/pipeline/pl_10_ejecutar_dbt.json`, `pl_99_maestro_medallion.json` y el trigger `tr_microlote_15min`, que ahora corre cada 15 minutos y arranca detenido. El maestro ya no incluye Bronze.
 
 ## Reversión
 

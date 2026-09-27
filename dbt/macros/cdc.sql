@@ -1,24 +1,20 @@
 {#
     Resolucion de eventos CDC -> estado actual de la fila.
     ------------------------------------------------------------------
-    El CDC de SQL Server entrega N eventos por clave dentro de un mismo
-    microlote. Silver necesita exactamente uno: el ultimo. El orden
-    correcto es (__$start_lsn, __$seqval) y NO el timestamp de ingesta,
-    porque dos transacciones pueden aterrizar en el lake desordenadas.
+    El recurso CDC nativo de ADF entrega los cambios netos por microlote.
+    Para obtener el estado final de la fila en el microlote, se ordena
+    por la marca de tiempo `ingested_at` provista por el recurso de ADF.
 
-    La imagen previa de un update (__$operation = 3) se descarta: solo
-    describe como estaba la fila antes y duplicaria la clave.
-
-    Un delete (__$operation = 1) no se descarta: se propaga como
-    borrado logico (is_deleted = 1) para que Gold pueda excluirlo sin
-    perder la trazabilidad de que existio.
+    Un borrado (cdc_operation = 'D') se propaga como borrado logico 
+    (es_borrado = 1) para que Gold pueda excluirlo sin perder la 
+    trazabilidad de que existio.
 #}
 
 {% macro ultimo_evento_cdc(relacion_origen, clave_negocio, capa, entidad) -%}
     SELECT *
     FROM (
         SELECT *,
-               ROW_NUMBER() OVER (PARTITION BY {{ clave_negocio }} ORDER BY (SELECT NULL)) as _rn
+               ROW_NUMBER() OVER (PARTITION BY {{ clave_negocio }} ORDER BY ingested_at DESC) as _rn
         FROM {{ relacion_origen }}
         WHERE 1=1
         {{ filtro_incremental(capa, entidad) }}
@@ -29,7 +25,7 @@
 
 {#  Marca de borrado logico a partir del tipo de operacion CDC.  #}
 {% macro es_borrado() -%}
-    CAST(0 AS BIT)
+    CAST(CASE WHEN cdc_operation = 'D' THEN 1 ELSE 0 END AS BIT)
 {%- endmacro %}
 
 

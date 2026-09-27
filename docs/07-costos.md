@@ -10,7 +10,7 @@
 | Pool dedicado de Synapse (opcional) | Por DWU mientras está encendido | Solo existe si se crea con `CREAR_POOL_DEDICADO=si`, y se crea pausado. Pausarlo siempre al terminar (`az synapse sql pool pause`). |
 | OLTP Azure SQL serverless (`GP_S_Gen5_2`) | Por vCore-segundo mientras está activo | El recurso CDC lo consulta cada 15 min, así que no se autopausa mientras la captura corre. |
 | ADF (pipelines de dbt) | Por ejecución de actividad | Trigger cada 15 min, alineado con Bronze: no se transforma más seguido de lo que llegan datos. |
-| ACI (dbt) | Por segundo de CPU y memoria | Se crea y se destruye en cada ejecución. |
+| Azure Batch (dbt) | Por el tiempo de cómputo del nodo (VM) asignado al pool | Se encarga de descargar las dependencias y ejecutar el comando de dbt clonando el repositorio para transformar los datos. |
 | CDC en el OLTP | Almacenamiento de las tablas de cambios | Retención de 7 días. |
 
 ## Recomendaciones
