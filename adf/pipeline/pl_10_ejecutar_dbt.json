@@ -17,7 +17,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"command": {
-						"value": "/bin/bash -c \"pip3 install dbt-synapse --user && rm -rf Proyecto-MLVI && git clone https://github.com/JosemariaNA/Proyecto-MLVI.git && cd Proyecto-MLVI/dbt && python3 -m dbt build --profiles-dir . --project-dir . --select @{pipeline().parameters.seleccion} --target prod\"",
+						"value": "/bin/bash -c \"pip3 install dbt-synapse --user && rm -rf Proyecto-MLVI && git clone https://github.com/JosemariaNA/Proyecto-MLVI.git && cd Proyecto-MLVI/dbt && ~/.local/bin/dbt build --profiles-dir . --project-dir . --select @{pipeline().parameters.seleccion} --target prod\"",
 						"type": "Expression"
 					},
 					"resourceLinkedService": {
