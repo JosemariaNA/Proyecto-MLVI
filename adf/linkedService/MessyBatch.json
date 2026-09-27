@@ -1,0 +1,18 @@
+{
+	"name": "MessyBatch",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureBatch",
+		"typeProperties": {
+			"batchUri": "https://batchmlvi2026.westus.batch.azure.com",
+			"poolName": "dbtpool",
+			"accountName": "batchmlvi2026",
+			"linkedServiceName": {
+				"referenceName": "ls_batch_storage",
+				"type": "LinkedServiceReference"
+			},
+			"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIkRBVEFGQUNUT1JZQDUzMkU1MTZDLUE1RTktNDNFQy1CQjNDLTFGRUVFQjM1QTE4MV8yZDIyNjFhMy02M2M2LTQzMGItYmE1YS1lNmE4YzVjM2VjMjYiDQp9"
+		}
+	}
+}
