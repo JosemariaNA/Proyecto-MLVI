@@ -16,7 +16,10 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"command": "/bin/bash -c \"sudo apt-get update && sudo apt-get install -y python3-pip git unixodbc-dev msodbcsql18 msodbcsql17 && pip3 install dbt-synapse && git clone https://github.com/JosemariaNA/Proyecto-MLVI.git && cd Proyecto-MLVI/dbt && dbt build --profiles-dir . --project-dir . --select @{pipeline().parameters.seleccion} --target prod\"",
+					"command": {
+						"value": "/bin/bash -c \"curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc && curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list && sudo apt-get update && sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev python3-pip git && pip3 install dbt-synapse && git clone https://github.com/JosemariaNA/Proyecto-MLVI.git && cd Proyecto-MLVI/dbt && dbt build --profiles-dir . --project-dir . --select @{pipeline().parameters.seleccion} --target prod\"",
+						"type": "Expression"
+					},
 					"resourceLinkedService": {
 						"referenceName": "ls_batch_storage",
 						"type": "LinkedServiceReference"
