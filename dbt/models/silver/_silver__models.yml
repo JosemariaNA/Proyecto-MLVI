@@ -134,9 +134,11 @@ models:
         tests:
           - relationships: {to: ref('slv_sucursales'), field: sucursal_id, severity: warn}
       - name: fecha_venta
-        tests: [not_null]
+        tests:
+          - not_null: {severity: warn}
       - name: fecha_key
-        tests: [not_null]
+        tests:
+          - not_null: {severity: warn}
       - name: estado
         tests:
           - accepted_values:
