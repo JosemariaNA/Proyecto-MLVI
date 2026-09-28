@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="description" content="MessyOps · Dashboard Ejecutivo publicado con Microsoft Power BI">
+    <title>Dashboard Ejecutivo | MessyOps</title>
+    <link rel="icon" type="image/png" href="./messyops-logo-icon.png">
+
+    <style>
+        /* =========================================================
+           1. Tokens de diseño (paleta inspirada en el logo MessyOps)
+           ========================================================= */
+        :root {
+            color-scheme: light;
+
+            --primary: #1a5478;          /* azul petróleo */
+            --primary-dark: #0e3f5c;     /* azul oscuro */
+            --accent: #45c1c3;           /* turquesa */
+            --accent-soft: #e6f7f7;
+
+            --background: #f4f6f8;
+            --surface: #ffffff;
+            --surface-muted: #f8fafb;
+            --text-primary: #10283a;
+            --text-secondary: #5b6b7a;
+            --text-muted: #8795a3;
+            --border: #e3e8ee;
+            --success: #1fa971;
+            --warning: #e0a526;
+
+            --shadow-sm: 0 1px 2px rgba(16, 40, 58, 0.06);
+            --shadow: 0 1px 3px rgba(16, 40, 58, 0.06), 0 6px 20px rgba(16, 40, 58, 0.06);
+
+            --radius-sm: 8px;
+            --radius: 14px;
+
+            --header-h: 64px;
+            --gutter: 24px;
+            --max-width: 1880px;
+
+            --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+            --t: 180ms;
+
+            --font: Inter, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        /* =========================================================
+           2. Base
+           ========================================================= */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        html {
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+            scrollbar-width: thin;
+            scrollbar-color: #c3ccd5 transparent;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            font-family: var(--font);
+            font-size: 15px;
+            line-height: 1.5;
+            color: var(--text-primary);
+            background: var(--background);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        img {
+            display: block;
+            max-width: 100%;
+        }
+
+        :focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+        }
+
+        /* Scrollbar discreto (Edge / Chrome) */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #c3ccd5;
+            border-radius: 10px;
+            border: 3px solid var(--background);
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .shell {
+            width: 100%;
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding-left: var(--gutter);
+            padding-right: var(--gutter);
+        }
+
+        /* =========================================================
+           3. Header
+           ========================================================= */
+        .app-header {
+            position: relative;
+            z-index: 10;
+            flex: 0 0 auto;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Línea superior de acento con los colores del logo */
+        .app-header::before {
+            content: "";
+            position: absolute;
+            inset: 0 0 auto 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-dark) 0%, var(--primary) 45%, var(--accent) 100%);
+        }
+
+        .app-header__inner {
+            height: var(--header-h);
+            padding-top: 3px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .brand__logo {
+            width: 42px;
+            height: 38px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .brand__text {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            line-height: 1.15;
+        }
+
+        .brand__name {
+            font-size: 19px;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            color: var(--primary-dark);
+        }
+
+        .brand__tagline {
+            font-size: 10.5px;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        .header-divider {
+            width: 1px;
+            height: 28px;
+            background: var(--border);
+            flex-shrink: 0;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            font-size: 14px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .breadcrumb svg {
+            display: block;
+            width: 14px;
+            height: 14px;
+            color: var(--text-muted);
+        }
+
+        .breadcrumb [aria-current="page"] {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .header-actions {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            height: 32px;
+            padding: 0 12px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            background: var(--surface-muted);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+        }
+
+        .status-pill__label {
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .status-dot {
+            position: relative;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--warning);
+            flex-shrink: 0;
+            transition: background-color var(--t) var(--ease);
+        }
+
+        .is-loaded .status-dot {
+            background: var(--success);
+        }
+
+        .is-loaded .status-dot::after {
+            content: "";
+            position: absolute;
+            inset: -3px;
+            border-radius: 50%;
+            border: 2px solid var(--success);
+            opacity: 0;
+            animation: ping 1.6s var(--ease) 2;
+        }
+
+        @keyframes ping {
+            0%   { transform: scale(0.6); opacity: 0.7; }
+            100% { transform: scale(1.6); opacity: 0; }
+        }
+
+        /* =========================================================
+           4. Main / encabezado de contenido
+           ========================================================= */
+        .app-main {
+            flex: 1 0 auto;
+            display: flex;
+            flex-direction: column;
+            padding-top: 20px;
+            padding-bottom: 16px;
+            animation: rise 260ms var(--ease) both;
+        }
+
+        @keyframes rise {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: none; }
+        }
+
+        .page-head {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px 24px;
+            margin-bottom: 16px;
+        }
+
+        .page-head__eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 4px;
+            font-size: 11.5px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--primary);
+        }
+
+        .page-head__eyebrow::before {
+            content: "";
+            width: 14px;
+            height: 3px;
+            border-radius: 2px;
+            background: var(--accent);
+        }
+
+        .page-head h1 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 700;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+        }
+
+        .page-head p {
+            margin: 4px 0 0;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .page-head__tools {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .meta {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12.5px;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        .meta svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            height: 36px;
+            padding: 0 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--surface);
+            box-shadow: var(--shadow-sm);
+            font: inherit;
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--primary-dark);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background-color var(--t) var(--ease),
+                        border-color var(--t) var(--ease);
+        }
+
+        .btn svg {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+
+        .btn:hover {
+            border-color: var(--accent);
+            background: var(--accent-soft);
+        }
+
+        .btn[hidden] {
+            display: none;
+        }
+
+        /* =========================================================
+           5. Contenedor Power BI (protagonista)
+           Solo se estiliza el contenedor y el elemento iframe;
+           el contenido interno del reporte no se toca.
+           ========================================================= */
+        .powerbi-container {
+            position: relative;
+            flex: 1 1 auto;
+            width: 100%;
+            /* Ocupa todo el espacio restante bajo el header; el mínimo evita
+               que el reporte quede demasiado pequeño en pantallas bajas */
+            min-height: 560px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-top: 3px solid var(--accent);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            isolation: isolate;
+        }
+
+        .powerbi-container iframe {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            display: block;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        /* Indicador de carga: queda debajo del iframe y se oculta al cargar */
+        .powerbi-loader {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            padding: 24px;
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-secondary);
+            background: var(--surface-muted);
+            transition: opacity 250ms var(--ease), visibility 250ms;
+        }
+
+        .is-loaded .powerbi-loader {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .spinner {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            animation: spin 0.9s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Modo pantalla completa del contenedor */
+        .powerbi-container:fullscreen {
+            border: 0;
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+        .powerbi-container:-webkit-full-screen {
+            border: 0;
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+        /* =========================================================
+           6. Footer
+           ========================================================= */
+        .app-footer {
+            flex: 0 0 auto;
+            border-top: 1px solid var(--border);
+            background: var(--surface);
+        }
+
+        .app-footer__inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 4px 16px;
+            padding-top: 12px;
+            padding-bottom: 12px;
+            padding-bottom: max(12px, env(safe-area-inset-bottom));
+            font-size: 12.5px;
+            color: var(--text-muted);
+        }
+
+        .app-footer strong {
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+
+        .app-footer__sep {
+            margin: 0 6px;
+        }
+
+        /* =========================================================
+           7. Responsive
+           ========================================================= */
+
+        /* Escritorio con poca altura (p. ej. 1366x768 con barras del navegador) */
+        @media (min-width: 769px) and (max-height: 820px) {
+            .app-main {
+                padding-top: 14px;
+                padding-bottom: 12px;
+            }
+
+            .page-head {
+                margin-bottom: 12px;
+            }
+
+            .page-head__eyebrow {
+                display: none;
+            }
+
+            .page-head h1 {
+                font-size: 22px;
+            }
+
+            .powerbi-container {
+                min-height: 480px;
+            }
+        }
+
+        /* Tablet horizontal */
+        @media (max-width: 1024px) {
+            :root {
+                --gutter: 18px;
+            }
+
+            .brand__tagline,
+            .meta {
+                display: none;
+            }
+        }
+
+        /* Tablet vertical */
+        @media (max-width: 768px) {
+            :root {
+                --header-h: 58px;
+                --gutter: 14px;
+                --radius: 12px;
+            }
+
+            .header-divider,
+            .breadcrumb {
+                display: none;
+            }
+
+            .app-main {
+                padding-top: 14px;
+                padding-bottom: 12px;
+            }
+
+            .page-head {
+                align-items: center;
+                flex-wrap: nowrap;
+                margin-bottom: 12px;
+            }
+
+            .page-head h1 {
+                font-size: 21px;
+            }
+
+            .page-head p {
+                font-size: 13px;
+            }
+
+            .page-head__eyebrow {
+                display: none;
+            }
+
+            /* Altura cómoda: casi todo el viewport bajo el header */
+            .powerbi-container {
+                flex: 0 0 auto;
+                height: calc(100vh - var(--header-h) - 40px);
+                height: calc(100dvh - var(--header-h) - 40px);
+                min-height: 460px;
+            }
+
+            .app-footer__inner {
+                justify-content: center;
+                text-align: center;
+            }
+        }
+
+        /* Móvil */
+        @media (max-width: 480px) {
+            :root {
+                --header-h: 54px;
+                --gutter: 10px;
+                --radius: 10px;
+            }
+
+            body {
+                font-size: 14px;
+            }
+
+            .app-header__inner {
+                gap: 10px;
+            }
+
+            .brand {
+                gap: 8px;
+            }
+
+            .brand__logo {
+                width: 34px;
+                height: 31px;
+            }
+
+            .brand__name {
+                font-size: 17px;
+            }
+
+            .status-pill {
+                height: 28px;
+                padding: 0 10px;
+                font-size: 12px;
+            }
+
+            .status-pill__label {
+                display: none;
+            }
+
+            .page-head h1 {
+                font-size: 19px;
+            }
+
+            /* Botón de pantalla completa solo con icono */
+            .btn {
+                width: 36px;
+                padding: 0;
+                flex-shrink: 0;
+            }
+
+            .btn__text {
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                overflow: hidden;
+                clip: rect(0 0 0 0);
+                white-space: nowrap;
+            }
+
+            .powerbi-container {
+                min-height: 420px;
+            }
+
+            .app-footer__inner {
+                flex-direction: column;
+                gap: 2px;
+            }
+        }
+
+        /* Móvil en horizontal: prioriza el reporte */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .page-head {
+                display: none;
+            }
+
+            .app-main {
+                padding-top: 8px;
+            }
+
+            .powerbi-container {
+                flex: 0 0 auto;
+                height: calc(100vh - var(--header-h) - 16px);
+                height: calc(100dvh - var(--header-h) - 16px);
+                min-height: 300px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="app-header">
+        <div class="shell app-header__inner">
+            <a class="brand" href="#" aria-label="MessyOps · inicio">
+                <img
+                    class="brand__logo"
+                    src="./messyops-logo-icon.png"
+                    alt="MessyOps"
+                    width="42"
+                    height="38"
+                    onerror="this.style.display='none'">
+                <span class="brand__text">
+                    <span class="brand__name">MessyOps</span>
+                    <span class="brand__tagline">Simplified Operations. Reliable Solutions.</span>
+                </span>
+            </a>
+
+            <span class="header-divider" aria-hidden="true"></span>
+
+            <nav aria-label="Ruta de navegación">
+                <ol class="breadcrumb">
+                    <li>Business Intelligence</li>
+                    <li aria-hidden="true">
+                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 3.5 4.5 4.5L6 12.5"/></svg>
+                    </li>
+                    <li aria-current="page">Dashboard Ejecutivo</li>
+                </ol>
+            </nav>
+
+            <div class="header-actions">
+                <span class="status-pill" role="status" aria-live="polite">
+                    <span class="status-dot" aria-hidden="true"></span>
+                    Power BI
+                    <span class="status-pill__label" id="statusLabel">· Cargando</span>
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <main class="shell app-main">
+        <div class="page-head">
+            <div>
+                <span class="page-head__eyebrow">Reporte ejecutivo</span>
+                <h1>Dashboard Ejecutivo</h1>
+                <p>Visión general del rendimiento operacional</p>
+            </div>
+
+            <div class="page-head__tools">
+                <span class="meta">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="8" cy="3.5" rx="5" ry="2"/><path d="M3 3.5v9c0 1.1 2.2 2 5 2s5-.9 5-2v-9"/><path d="M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/></svg>
+                    Data Warehouse · Microsoft Power BI
+                </span>
+                <button class="btn" type="button" id="fullscreenBtn" aria-pressed="false" hidden>
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10"/></svg>
+                    <span class="btn__text" id="fullscreenText">Pantalla completa</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="powerbi-container" id="powerbiContainer">
+
+            <div class="powerbi-loader" aria-hidden="true">
+                <span class="spinner"></span>
+                Cargando reporte de Power BI…
+            </div>
+
+            <iframe
+                title="Dashboard_Ejecutivo"
+                src="https://app.powerbi.com/reportEmbed?reportId=f37aaa1a-e9ea-4956-af51-248d0d87f10d&autoAuth=true&ctid=29b04522-efb6-422d-8d80-d86a2967b572"
+                frameborder="0"
+                allowfullscreen="true">
+            </iframe>
+
+        </div>
+    </main>
+
+    <footer class="app-footer">
+        <div class="shell app-footer__inner">
+            <span><strong>MessyOps</strong><span class="app-footer__sep">·</span>Simplified Operations. Reliable Solutions.</span>
+            <span>Dashboard publicado mediante Microsoft Power BI</span>
+        </div>
+    </footer>
+
+    <script>
+        (function () {
+            var container = document.getElementById('powerbiContainer');
+            var iframe = container.querySelector('iframe');
+            var statusLabel = document.getElementById('statusLabel');
+            var fsBtn = document.getElementById('fullscreenBtn');
+            var fsText = document.getElementById('fullscreenText');
+
+            /* Estado de carga: solo escucha el evento "load" del iframe,
+               no accede ni modifica su contenido */
+            iframe.addEventListener('load', function () {
+                document.body.classList.add('is-loaded');
+                statusLabel.textContent = '· En línea';
+            });
+
+            /* Pantalla completa del contenedor (se oculta si el navegador no la soporta, p. ej. iPhone) */
+            var requestFs = container.requestFullscreen || container.webkitRequestFullscreen;
+            var exitFs = document.exitFullscreen || document.webkitExitFullscreen;
+
+            if (!requestFs || !exitFs) {
+                return;
+            }
+
+            var currentFs = function () {
+                return document.fullscreenElement || document.webkitFullscreenElement;
+            };
+
+            var syncFs = function () {
+                var active = !!currentFs();
+                fsText.textContent = active ? 'Salir de pantalla completa' : 'Pantalla completa';
+                fsBtn.setAttribute('aria-pressed', active ? 'true' : 'false');
+            };
+
+            fsBtn.hidden = false;
+            fsBtn.addEventListener('click', function () {
+                if (currentFs()) {
+                    exitFs.call(document);
+                } else {
+                    requestFs.call(container);
+                }
+            });
+            document.addEventListener('fullscreenchange', syncFs);
+            document.addEventListener('webkitfullscreenchange', syncFs);
+        })();
+    </script>
+
+</body>
+</html>
